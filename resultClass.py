@@ -2,7 +2,28 @@ from selenium.webdriver.common.by import By
 
 
 class Result:
+    """
+    Result class.
+
+    self.raw_text       : raw text from the individual results.o2cm.com page for that event
+    self.link           : link from the individual results.o2cm.com page for that event
+    self.placement      : what place the person got in the event
+    self.driver         : web object from selenium
+    self.level          : what level the event was
+    self.style          : what style the event was
+    self.dances_string  : ,-delimited list of dances. Not calculated until calculateDances() is called
+    self.dances         : list of dances in the result
+    """
+
     def __init__(self, result, driver, debug_reject_headers=0):
+        """
+        Initialize the Result class.
+
+        Inputs:
+            result - html element object from selenium
+            driver - web object from selenium
+            debug_reject_headers - 1 to print dances (headers) that the program doesn't know what to do with
+        """
         self.raw_text = result.get_attribute("innerHTML")
         self.link = result.get_attribute("href")
         self.placement = int(self.raw_text.split(")")[0])
@@ -14,17 +35,29 @@ class Result:
         self.debug_reject_headers = debug_reject_headers
 
     def __repr__(self):
+        """
+        When the Result object is printed, this is what is returned
+        """
         return f"Placed #{self.placement} in {self.level} {self.style} {self.dances_string}."
 
     def _which_ele_is_in_str(self, list, string):
+        """
+        Returns the first element from list that is in string.
+        """
         return next((x for x in list if x in string), None)
 
     def _lists_both_have_ele_in_str(self, list1, list2, string):
+        """
+        Returns if string is in both list1 and list2.
+        """
         return self._which_ele_is_in_str(list1, string) and self._which_ele_is_in_str(
             list2, string
         )
 
     def _getStyle(self):
+        """
+        Gets the style from the result.
+        """
         result_text = self.raw_text.lower()
         styles_list = ["smooth", "standard", "rhythm", "latin"]
 
@@ -85,12 +118,16 @@ class Result:
             novice_list,
         ]
 
+        # Returns the first element from the level list that is matched
         for lst in levels_list:
             match = self._which_ele_is_in_str(lst, result_text)
             if match:
                 return lst[0]
 
     def _getDances(self):
+        """
+        Returns a list of what dances are in the event.
+        """
         result_text = self.raw_text.lower()
         dance_list = [
             "v. waltz",
@@ -107,26 +144,30 @@ class Result:
             "bolero",
         ]
 
+        # If the event name has a dance in it, return the dance
         dance = self._which_ele_is_in_str(dance_list, result_text)
         if dance:
             return [dance]
 
-        ##check what dances it is for multidance events
-
+        # If not, then it's probably because it's a multi-dance event
+        # Click in to the event
         self.driver.execute_script("window.open('');")
         self.driver.switch_to.window(self.driver.window_handles[1])
         self.driver.get(self.link)
 
+        # Pull all the table headers
         headers = self.driver.find_elements(By.CLASS_NAME, "h3")
         headers_text = [header.get_attribute("innerHTML").lower() for header in headers]
+        # See which headers have names in the dance_list
         dances = list(filter(lambda x: x in headers_text, dance_list))
 
+        # Add jank becuase viennese waltz and paso doble sometimes have different names
         if "viennese waltz" in headers_text:
             dances.append("v. waltz")
-
         if "intl. paso doble" in headers_text:
             dances.append("paso doble")
 
+        # Print out any headers we haven't somehow haven't accounted for
         if self.debug_reject_headers:
             reject_dances = []
             for header in headers_text:
@@ -150,5 +191,8 @@ class Result:
         return ["unknown dance(s)"]
 
     def calculateDances(self):
+        """
+        Call this to calculate the dances in the event.
+        """
         self.dances = self._getDances()
         self.dances_string = ", ".join(self.dances)

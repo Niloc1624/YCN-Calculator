@@ -4,6 +4,7 @@ import pandas as pd
 
 app = Flask(__name__)
 
+# Not sure what most of this (or any of the associated HTML) does, ChatGPT wrote most of it.
 
 @app.route("/")
 def input_page():
