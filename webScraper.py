@@ -328,7 +328,7 @@ def webScraper(first_name, last_name):
     )
 
     output.append(
-        'The first number is the number of the points including the "double points each level down" rule. This is the number that matters'
+        'The first number is the number of the points including the "double points each level down" rule. This is the number that matters.'
     )
     output.append(
         "For example, 2 gold points is worth 4 silver points. The first number includes this in its calculation. The second number does not."
