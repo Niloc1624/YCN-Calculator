@@ -5,3 +5,5 @@ Modules used
 - selenium
 - pandas
 - flask
+
+Next is to figure out how to get it on a website..
