@@ -9,8 +9,8 @@ from resultClass import Result
 
 ##Manual Enter
 
-first_name = "Eren"
-last_name = "Fukuda"
+first_name = "first_name"
+last_name = "last_name"
 
 
 def webScraper(first_name, last_name):
