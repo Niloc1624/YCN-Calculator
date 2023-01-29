@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Input Page</title>
+</head>
+
+<body>
+    <form method="post" action="{{ url_for('display_list') }}">
+        <label>Enter a first and last name:</label>
+        <input type="text" name="first_name">
+        <input type="text" name="last_name">
+        <input type="submit" value="Submit">
+    </form>
+</body>
+
+</html>

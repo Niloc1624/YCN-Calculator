@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Displaying Results</title>
+</head>
+
+<body>
+  <h1>Displaying Results</h1>
+  <ul>
+    {% for element in output %}
+    <p>
+      {% if isinstance(element,df) %}
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          {% for column in element.columns %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in element.itertuples() %}
+        <tr>
+          {% for value in row %}
+          <td>{{ value }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    {{ element }}
+    {% endif %}
+    </p>
+    {% endfor %}
+  </ul>
+</body>
+
+</html>
