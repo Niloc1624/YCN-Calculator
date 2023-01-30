@@ -341,17 +341,18 @@ def webScraper(first_names, last_names):
 
     output[0] += f"from https://results.o2cm.com/."
     output.append(
-        "YCN points are calculated according to this system: http://ballroom.mit.edu/index.php/ycn-proficiency-points/."
+        """YCN points are calculated according to this system:
+         http://ballroom.mit.edu/index.php/ycn-proficiency-points/."""
     )
 
     output.append(
-        'The first number is the number of the points including the "double points each level down" rule. This is the number that matters.'
+        """The first number is the number of the points including the"double points each level down" rule.
+         This is the number that matters. For example, 2 gold points is worth 4 silver points.
+         The first number includes this in its calculation. The second number does not."""
     )
     output.append(
-        "For example, 2 gold points is worth 4 silver points. The first number includes this in its calculation. The second number does not."
-    )
-    output.append(
-        "The second number is the number of the points earned by reaching finals in that level. This number is just fyi."
+        """The second number is the number of the points earned by reaching finals in that level.
+         This number is just fyi."""
     )
 
     # The goods (data)
