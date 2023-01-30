@@ -75,18 +75,15 @@ class Result:
             "mambo",
             "bolero",
         ]
-        ballroom_dance_list = ["waltz", "tango", "foxtrot", "quickstep"]
+        ballroom_dance_list = ["waltz", "tango", "foxtrot", "quickstep", "ballroom"]
         american_list = ["am.", "amer.", "american"]
-        international_list = ["intl", "international"]
+        international_list = ["intl", "international", "ballroom"]
 
+        # Standard at the end because sometimes standard is called ballroom
         if self._lists_both_have_ele_in_str(
             ballroom_dance_list, american_list, result_text
         ):
             return "smooth"
-        elif self._lists_both_have_ele_in_str(
-            ballroom_dance_list, international_list, result_text
-        ):
-            return "standard"
         elif self._lists_both_have_ele_in_str(
             latin_rhythm_dance_list, american_list, result_text
         ):
@@ -95,6 +92,10 @@ class Result:
             latin_rhythm_dance_list, international_list, result_text
         ):
             return "latin"
+        elif self._lists_both_have_ele_in_str(
+            ballroom_dance_list, international_list, result_text
+        ):
+            return "standard"
         elif self.debug_reject_headers:
             print(f"{result_text}: has no valid style.")
 
