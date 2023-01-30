@@ -8,9 +8,10 @@ from resultChecker import resultValid
 from resultClass import Result
 
 ##Manual Enter
-
-first_name = "first_name"
-last_name = "last_name"
+manual = 0
+if manual:
+    first_name = "first_name"
+    last_name = "last_name"
 
 
 def webScraper(first_name, last_name):
@@ -19,7 +20,7 @@ def webScraper(first_name, last_name):
     """
     # config
     show_browser = 0
-    show_work = 0
+    show_work = 1
     debug_reject_headers = 1
 
     ##Make blank tables - there's probably a way to automate this but...
@@ -269,7 +270,10 @@ def webScraper(first_name, last_name):
             for dance in result.dances:
                 num_points = max(4 - result.placement, 1)
                 for i in range(2):
-                    eval(result.style + "_data")[result.level][dance][i] += num_points
+                    if result.style and result.level and dance:
+                        eval(result.style + "_data")[result.level][dance][
+                            i
+                        ] += num_points
             # Mainly for troubleshooting, will print to terminal every round we got points
             if show_work:
                 print(
@@ -351,8 +355,9 @@ def webScraper(first_name, last_name):
 
 
 # For testing
-"""output = webScraper(first_name, last_name)
+if manual:
+    output = webScraper(first_name, last_name)
 
-for line in output:
-    print()
-    print(line)"""
+    for line in output:
+        print()
+        print(line)

@@ -24,6 +24,7 @@ class Result:
             driver - web object from selenium
             debug_reject_headers - 1 to print dances (headers) that the program doesn't know what to do with
         """
+        self.debug_reject_headers = debug_reject_headers
         self.raw_text = result.get_attribute("innerHTML")
         self.link = result.get_attribute("href")
         self.placement = int(self.raw_text.split(")")[0])
@@ -32,7 +33,6 @@ class Result:
         self.style = self._getStyle()
 
         self.dances_string = "Not yet calculated"
-        self.debug_reject_headers = debug_reject_headers
 
     def __repr__(self):
         """
@@ -70,6 +70,7 @@ class Result:
             "rumba",
             "samba",
             "jive",
+            "paso doble",
             "swing",
             "mambo",
             "bolero",
@@ -94,6 +95,8 @@ class Result:
             latin_rhythm_dance_list, international_list, result_text
         ):
             return "latin"
+        elif self.debug_reject_headers:
+            print(f"{result_text}: has no valid style.")
 
         return None
 
@@ -104,7 +107,7 @@ class Result:
         novice_list = ["novice", "open"]
         gold_list = ["gold", "advanced"]
         silver_list = ["silver", "intermediate"]
-        bronze_list = ["bronze", "beginner", "syllabus"]
+        bronze_list = ["bronze", "beginner", "syllabus", "other"]
         newcomer_list = ["newcomer"]
 
         # novice at the end because "open" could be in the names of other events
@@ -120,9 +123,12 @@ class Result:
 
         # Returns the first element from the level list that is matched
         for lst in levels_list:
-            match = self._which_ele_is_in_str(lst, result_text)
-            if match:
+            if self._which_ele_is_in_str(lst, result_text):
                 return lst[0]
+        if self.debug_reject_headers:
+            print(f"{result_text}: has no valid level.")
+
+        return None
 
     def _getDances(self):
         """
@@ -139,6 +145,7 @@ class Result:
             "rumba",
             "samba",
             "jive",
+            "paso doble",
             "swing",
             "mambo",
             "bolero",
@@ -161,11 +168,9 @@ class Result:
         # See which headers have names in the dance_list
         dances = list(filter(lambda x: x in headers_text, dance_list))
 
-        # Add jank becuase viennese waltz and paso doble sometimes have different names
+        # Add jank becuase viennese waltz sometimes has a different name
         if "viennese waltz" in headers_text:
             dances.append("v. waltz")
-        if "intl. paso doble" in headers_text:
-            dances.append("paso doble")
 
         # Print out any headers we haven't somehow haven't accounted for
         if self.debug_reject_headers:
@@ -175,11 +180,10 @@ class Result:
                     header not in dance_list
                     and header != "summary"
                     and header != "viennese waltz"
-                    and header != "intl. paso doble"
                 ):
                     reject_dances.append(header)
             if reject_dances:
-                print(reject_dances)
+                print(f"{result_text}: invalid dance(s) {reject_dances}")
 
         # Close results page
         self.driver.close()
@@ -188,7 +192,7 @@ class Result:
         if dances:
             return dances
 
-        return ["unknown dance(s)"]
+        return [""]
 
     def calculateDances(self):
         """
