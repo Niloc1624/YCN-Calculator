@@ -10,11 +10,11 @@ from resultClass import Result
 ##Manual Enter
 manual = 0
 if manual:
-    first_name = "first_name"
-    last_name = "last_name"
+    first_names = "Raina, Raina"
+    last_names = "Elissa, Peterson"
 
 
-def webScraper(first_name, last_name):
+def webScraper(first_names, last_names):
     """
     Scrapes https://results.o2cm.com/ given someone's name.
     """
@@ -230,24 +230,32 @@ def webScraper(first_name, last_name):
         service=Service(ChromeDriverManager().install()), options=op
     )
 
-    driver.get("https://results.o2cm.com/individual.asp")
-
-    first_name_field = driver.find_element(By.ID, "szFirst")
-    last_name_field = driver.find_element(By.ID, "szLast")
-    search = driver.find_element(By.ID, "DoSearch")
-
-    first_name_field.send_keys(first_name)
-    last_name_field.send_keys(last_name)
-    search.click()
-
-    # Find all the results on the page
-    all_results = driver.find_elements(By.PARTIAL_LINK_TEXT, ") ")
-
-    # Get results in top 6
     top6_results_links = []
-    for i, result in enumerate(all_results):
-        if resultValid(driver, result):
-            top6_results_links.append(Result(result, driver, debug_reject_headers))
+    # Convert strings to lists
+    first_names = first_names.replace(", ", ",")
+    first_names = first_names.split(",")
+    last_names = last_names.replace(", ", ",")
+    last_names = last_names.split(",")
+
+    # For loop here for people who have multiple O2CM accounts
+    for first_name, last_name in zip(first_names, last_names):
+        driver.get("https://results.o2cm.com/individual.asp")
+
+        first_name_field = driver.find_element(By.ID, "szFirst")
+        last_name_field = driver.find_element(By.ID, "szLast")
+        search = driver.find_element(By.ID, "DoSearch")
+
+        first_name_field.send_keys(first_name)
+        last_name_field.send_keys(last_name)
+        search.click()
+
+        # Find all the results on the page
+        all_results = driver.find_elements(By.PARTIAL_LINK_TEXT, ") ")
+
+        # Get results in top 6
+        for i, result in enumerate(all_results):
+            if resultValid(driver, result):
+                top6_results_links.append(Result(result, driver, debug_reject_headers))
 
     # Check rounds
     for result in top6_results_links:
@@ -323,7 +331,15 @@ def webScraper(first_name, last_name):
     latin_df.index = ["Samba", "Cha cha", "Rumba", "Paso Doble", "Jive"]
 
     # Lots of words to go at the top of the webpage
-    output = [f"Results for {first_name} {last_name} from https://results.o2cm.com/."]
+    if len(first_names) > 1 or len(last_names) > 1:
+        output = ["Combined results for "]
+        for first_name, last_name in zip(first_names, last_names):
+            output[0] += f"{first_name} {last_name} + "
+        output[0] = output[0][:-2]
+    else:
+        output = [f"Results for {first_names[0]} {last_names[0]} "]
+
+    output[0] += f"from https://results.o2cm.com/."
     output.append(
         "YCN points are calculated according to this system: http://ballroom.mit.edu/index.php/ycn-proficiency-points/."
     )
@@ -356,7 +372,7 @@ def webScraper(first_name, last_name):
 
 # For testing
 if manual:
-    output = webScraper(first_name, last_name)
+    output = webScraper(first_names, last_names)
 
     for line in output:
         print()

@@ -16,9 +16,9 @@ def input_page():
 
 @app.route("/display_list", methods=["POST"])
 def display_list():
-    first_name = request.form["first_name"]
-    last_name = request.form["last_name"]
-    output = webScraper(first_name, last_name)
+    first_names = request.form["first_name"]
+    last_names = request.form["last_name"]
+    output = webScraper(first_names, last_names)
     return render_template(
         "display_list.html",
         output=output,
