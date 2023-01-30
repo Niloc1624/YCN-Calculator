@@ -10,8 +10,8 @@ from resultClass import Result
 ##Manual Enter
 manual = 0
 if manual:
-    first_names = "Raina, Raina"
-    last_names = "Elissa, Peterson"
+    first_names = "first_names"
+    last_names = "last_names"
 
 
 def webScraper(first_names, last_names):
