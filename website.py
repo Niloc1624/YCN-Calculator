@@ -2,9 +2,12 @@ from flask import Flask, render_template, request
 from webScraper import webScraper
 import pandas as pd
 
+# from flask_frozen import Freezer
+
 app = Flask(__name__)
 
 # Not sure what most of this (or any of the associated HTML) does, ChatGPT wrote most of it.
+
 
 @app.route("/")
 def input_page():
@@ -25,5 +28,8 @@ def display_list():
     )
 
 
+# freezer = Freezer(app)
+
 if __name__ == "__main__":
     app.run(debug=True)
+    # freezer.freeze()

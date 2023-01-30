@@ -14,9 +14,9 @@ last_name = "last_name"
 
 
 def webScraper(first_name, last_name):
-    '''
+    """
     Scrapes https://results.o2cm.com/ given someone's name.
-    '''
+    """
     # config
     show_browser = 0
     show_work = 0
@@ -250,7 +250,7 @@ def webScraper(first_name, last_name):
 
     # Check rounds
     for result in top6_results_links:
-        # Calculate dances - have to do this now because now we have all the links
+        # Calculate dances - have to do this now and not earlier because now we have all the links
         result.calculateDances()
 
         # Open results page
@@ -266,18 +266,15 @@ def webScraper(first_name, last_name):
         if (num_rounds == 2 and result.placement <= 3) or (
             num_rounds > 2 and result.placement <= 6
         ):
-            if result.placement <= 3:
-                for dance in result.dances:
-                    num_points = max(4 - result.placement, 1)
-                    for i in range(2):
-                        eval(result.style + "_data")[result.level][dance][
-                            i
-                        ] += num_points
-                # Mainly for troubleshooting, will print to terminal every round we got points
-                if show_work:
-                    print(
-                        f"{result} There were {num_rounds} rounds. Adding {num_points} point(s)."
-                    )
+            for dance in result.dances:
+                num_points = max(4 - result.placement, 1)
+                for i in range(2):
+                    eval(result.style + "_data")[result.level][dance][i] += num_points
+            # Mainly for troubleshooting, will print to terminal every round we got points
+            if show_work:
+                print(
+                    f"{result} There were {num_rounds} rounds. Adding {num_points} point(s)."
+                )
 
         # Close results page
         driver.close()
