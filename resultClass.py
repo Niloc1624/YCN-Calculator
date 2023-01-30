@@ -38,7 +38,7 @@ class Result:
         """
         When the Result object is printed, this is what is returned
         """
-        return f"Placed #{self.placement} in {self.level} {self.style} {self.dances_string}."
+        return f"#{self.placement} in {self.level} {self.style} {self.dances_string}."
 
     def _which_ele_is_in_str(self, list, string):
         """
@@ -111,9 +111,10 @@ class Result:
         newcomer_list = ["newcomer"]
 
         # novice at the end because "open" could be in the names of other events
+        # prechamp before champ because prechamp has champ in the name
         levels_list = [
-            champ_list,
             prechamp_list,
+            champ_list,
             gold_list,
             silver_list,
             bronze_list,

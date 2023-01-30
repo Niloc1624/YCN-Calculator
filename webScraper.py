@@ -285,7 +285,7 @@ def webScraper(first_names, last_names):
             # Mainly for troubleshooting, will print to terminal every round we got points
             if show_work:
                 print(
-                    f"{result} There were {num_rounds} rounds. Adding {num_points} point(s)."
+                    f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
                 )
 
         # Close results page
