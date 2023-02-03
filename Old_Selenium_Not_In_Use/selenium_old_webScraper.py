@@ -1,21 +1,25 @@
-import requests
-from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
-from resultClass import Result
 
-## Manual Enter
-manual = 1
+from Old_Selenium_Not_In_Use.selenium_old_resultChecker import resultValid
+from Old_Selenium_Not_In_Use.selenium_old_resultClass import Result
+
+##Manual Enter
+manual = 0
 if manual:
-    first_names = "Colin"
-    last_names = "Richter"
+    first_names = "first_names"
+    last_names = "last_names"
 
 
 def webScraper(first_names, last_names):
     """
     Scrapes https://results.o2cm.com/ given someone's name.
     """
-
     # config
+    show_browser = 0
     show_work = 1
     debug_reject_headers = 1
 
@@ -218,6 +222,15 @@ def webScraper(first_names, last_names):
         },
     }
 
+    # Open Chrome and search for a dancer
+    op = webdriver.ChromeOptions()
+    if not show_browser:
+        op.add_argument("headless")  # makes it so Chrome doesn't actually open
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()), options=op
+    )
+
+    top6_results_links = []
     # Convert strings to lists
     first_names = first_names.replace(", ", ",")
     first_names = first_names.split(",")
@@ -226,18 +239,23 @@ def webScraper(first_names, last_names):
 
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
-        response = requests.get(
-            f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
-        )
-        soup = BeautifulSoup(response.text, "html.parser")
-        top6_results_links = []
-        for link in soup.find_all("a"):
-            link_text = link.text
-            if (
-                link_text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
-                and "-- Combine --" not in link_text
-            ):
-                top6_results_links.append(Result(link, debug_reject_headers))
+        driver.get("https://results.o2cm.com/individual.asp")
+
+        first_name_field = driver.find_element(By.ID, "szFirst")
+        last_name_field = driver.find_element(By.ID, "szLast")
+        search = driver.find_element(By.ID, "DoSearch")
+
+        first_name_field.send_keys(first_name)
+        last_name_field.send_keys(last_name)
+        search.click()
+
+        # Find all the results on the page
+        all_results = driver.find_elements(By.PARTIAL_LINK_TEXT, ") ")
+
+        # Get results in top 6
+        for i, result in enumerate(all_results):
+            if resultValid(driver, result):
+                top6_results_links.append(Result(result, driver, debug_reject_headers))
 
     # Check rounds
     for result in top6_results_links:
@@ -245,15 +263,13 @@ def webScraper(first_names, last_names):
         result.calculateDances()
 
         # Open results page
-        response = requests.get(result.link)
-        soup = BeautifulSoup(response.text, "html.parser")
+        driver.execute_script("window.open('');")
+        driver.switch_to.window(driver.window_handles[1])
+        driver.get(result.link)
 
         # Count number of rounds in event
-        select_element = soup.select_one("select")
-        num_rounds = 0
-        if select_element:
-            options = select_element.find_all("option")
-            num_rounds = len(options)
+        options = driver.find_elements(By.CSS_SELECTOR, "option")
+        num_rounds = len(options)
 
         # Check if we earned points. If we did, add those points to the data
         if (num_rounds == 2 and result.placement <= 3) or (
@@ -268,7 +284,13 @@ def webScraper(first_names, last_names):
                         ] += num_points
             # Mainly for troubleshooting, will print to terminal every round we got points
             if show_work:
-                print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
+                print(
+                    f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
+                )
+
+        # Close results page
+        driver.close()
+        driver.switch_to.window(driver.window_handles[-1])
 
     # Calculate the double points for level below rule
     for data in [smooth_data, standard_data, rhythm_data, latin_data]:

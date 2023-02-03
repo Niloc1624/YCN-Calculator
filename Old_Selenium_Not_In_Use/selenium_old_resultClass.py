@@ -1,5 +1,5 @@
-import requests
-from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+
 
 class Result:
     """
@@ -8,25 +8,27 @@ class Result:
     self.raw_text       : raw text from the individual results.o2cm.com page for that event
     self.link           : link from the individual results.o2cm.com page for that event
     self.placement      : what place the person got in the event
+    self.driver         : web object from selenium
     self.level          : what level the event was
     self.style          : what style the event was
     self.dances_string  : ,-delimited list of dances. Not calculated until calculateDances() is called
     self.dances         : list of dances in the result
     """
 
-    def __init__(self, result, debug_reject_headers=0):
+    def __init__(self, result, driver, debug_reject_headers=0):
         """
         Initialize the Result class.
 
         Inputs:
-            result - html element object from beautiful soup
-            driver - web object from beautiful soup
+            result - html element object from selenium
+            driver - web object from selenium
             debug_reject_headers - 1 to print dances (headers) that the program doesn't know what to do with
         """
         self.debug_reject_headers = debug_reject_headers
-        self.raw_text = result.text
-        self.link = result.get("href")
+        self.raw_text = result.get_attribute("innerHTML")
+        self.link = result.get_attribute("href")
         self.placement = int(self.raw_text.split(")")[0])
+        self.driver = driver
         self.level = self._getLevel()
         self.style = self._getStyle()
 
@@ -158,13 +160,13 @@ class Result:
 
         # If not, then it's probably because it's a multi-dance event
         # Click in to the event
-        response = requests.get(self.link)
-        soup = BeautifulSoup(response.text, "html.parser")
+        self.driver.execute_script("window.open('');")
+        self.driver.switch_to.window(self.driver.window_handles[1])
+        self.driver.get(self.link)
 
         # Pull all the table headers
-        headers = soup.select(".h3")
-        headers_text = [header.text.lower() for header in headers]
-
+        headers = self.driver.find_elements(By.CLASS_NAME, "h3")
+        headers_text = [header.get_attribute("innerHTML").lower() for header in headers]
         # See which headers have names in the dance_list
         dances = list(filter(lambda x: x in headers_text, dance_list))
 
@@ -184,6 +186,10 @@ class Result:
                     reject_dances.append(header)
             if reject_dances:
                 print(f"{result_text}: invalid dance(s) {reject_dances}")
+
+        # Close results page
+        self.driver.close()
+        self.driver.switch_to.window(self.driver.window_handles[-1])
 
         if dances:
             return dances
