@@ -4,7 +4,7 @@ import pandas as pd
 from resultClass import Result
 
 ## Manual Enter
-manual = 1
+manual = 0
 if manual:
     first_names = "Cindy"
     last_names = "Tan"
@@ -224,13 +224,13 @@ def webScraper(first_names, last_names):
     last_names = last_names.replace(", ", ",")
     last_names = last_names.split(",")
 
+    top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
         response = requests.get(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
         soup = BeautifulSoup(response.text, "html.parser")
-        top6_results_links = []
         for link in soup.find_all("a"):
             link_text = link.text
             if (
@@ -327,9 +327,10 @@ def webScraper(first_names, last_names):
     )
 
     output.append(
-        """The first number is the number of the points including the"double points each level down" rule.
-         This is the number that matters. For example, 2 gold points is worth 4 silver points.
-         The first number includes this in its calculation. The second number does not."""
+        """The first number is the number of the points including the "double points one level down and
+         +7 points for 2+ levels down" rule. This is the number that matters. For example, 1 gold point
+         is worth 2 silver points and 7 bronze points. The first number includes this in its calculation.
+         The second number does not."""
     )
     output.append(
         """The second number is the number of the points earned by reaching finals in that level.
