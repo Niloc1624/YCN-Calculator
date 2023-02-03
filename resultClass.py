@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
+
 class Result:
     """
     Result class.
@@ -10,7 +11,7 @@ class Result:
     self.placement      : what place the person got in the event
     self.level          : what level the event was
     self.style          : what style the event was
-    self.dances_string  : ,-delimited list of dances. Not calculated until calculateDances() is called
+    self.dances_string  : ,-delimited list of dances
     self.dances         : list of dances in the result
     """
 
@@ -29,8 +30,8 @@ class Result:
         self.placement = int(self.raw_text.split(")")[0])
         self.level = self._getLevel()
         self.style = self._getStyle()
-
-        self.dances_string = "Not yet calculated"
+        self.dances = self._getDances()
+        self.dances_string = ", ".join(self.dances)
 
     def __repr__(self):
         """
@@ -189,10 +190,3 @@ class Result:
             return dances
 
         return [""]
-
-    def calculateDances(self):
-        """
-        Call this to calculate the dances in the event.
-        """
-        self.dances = self._getDances()
-        self.dances_string = ", ".join(self.dances)

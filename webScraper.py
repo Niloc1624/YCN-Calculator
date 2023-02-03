@@ -241,9 +241,6 @@ def webScraper(first_names, last_names):
 
     # Check rounds
     for result in top6_results_links:
-        # Calculate dances - have to do this now and not earlier because now we have all the links
-        result.calculateDances()
-
         # Open results page
         response = requests.get(result.link)
         soup = BeautifulSoup(response.text, "html.parser")
