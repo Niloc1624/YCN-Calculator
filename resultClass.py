@@ -102,7 +102,7 @@ class Result:
     def _getLevel(self):
         result_text = self.raw_text.lower()
         champ_list = ["champ", "championship"]
-        prechamp_list = ["pre-champ", "cre-championship", "prechamp", "prechampionship"]
+        prechamp_list = ["pre-champ", "pre-championship", "prechamp", "prechampionship"]
         novice_list = ["novice", "open"]
         gold_list = ["gold", "advanced"]
         silver_list = ["silver", "intermediate"]

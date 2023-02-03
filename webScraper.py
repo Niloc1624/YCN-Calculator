@@ -6,8 +6,8 @@ from resultClass import Result
 ## Manual Enter
 manual = 1
 if manual:
-    first_names = "Colin"
-    last_names = "Richter"
+    first_names = "Cindy"
+    last_names = "Tan"
 
 
 def webScraper(first_names, last_names):
@@ -270,16 +270,20 @@ def webScraper(first_names, last_names):
             if show_work:
                 print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
 
-    # Calculate the double points for level below rule
-    for data in [smooth_data, standard_data, rhythm_data, latin_data]:
-        levels = list(data)[::-1]
-        for i, level in enumerate(levels):
-            for dance in data[level]:
-                if i:
-                    higher_level = levels[i - 1]
-                    current_points = data[level][dance][0]
-                    new_point_total = 2 * data[higher_level][dance][0] + current_points
-                    data[level][dance][0] = new_point_total
+    # Calculate the double points for level below and +7 for 2+ levels below rules
+    for d in [smooth_data, standard_data, rhythm_data, latin_data]:
+        levels_list = list(d.keys())
+        num_levels = len(levels_list)
+        for i, (level, dances) in enumerate(d.items()):
+            if i < num_levels - 1:
+                for dance in dances:
+                    next_level = levels_list[i + 1]
+                    d[level][dance][0] += 2 * d[next_level][dance][1]
+                    if i + 2 < num_levels:
+                        for j in range(i + 2, num_levels):
+                            higher_level = levels_list[j]
+                            if d[higher_level][dance][1]:
+                                d[level][dance][0] += 7
 
     # Probably there's a way to automate this
     # Make dictionaries to dataframes
