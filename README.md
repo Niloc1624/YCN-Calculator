@@ -6,4 +6,6 @@ Modules used
 - pandas
 - flask
 
-Next is to figure out how to get it on a website..
+Since https://ballroom.union.rpi.edu/calculator is back up and running again, my next steps will be:
+- Make this calculator able to check any given competition for people who are registered for levels they've pointed out of
+- Make this available on a website somehow (like fly.io)
