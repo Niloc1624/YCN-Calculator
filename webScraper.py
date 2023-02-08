@@ -6,18 +6,24 @@ from resultClass import Result
 ## Manual Enter
 manual = 0
 if manual:
-    first_names = "Cindy"
-    last_names = "Tan"
+    first_names = "Colin"
+    last_names = "Richter"
 
 
-def webScraper(first_names, last_names):
+def webScraper(
+    first_names, last_names, results_only=0, show_work=1, debug_reject_headers=1
+):
     """
     Scrapes https://results.o2cm.com/ given someone's name.
-    """
 
-    # config
-    show_work = 1
-    debug_reject_headers = 1
+    first_names : comma (or comma space(s))-delimited string of first names to check
+    last_names : comma (or comma space(s))-delimited string of last names to check
+    ^^Note that the length of the above two lists must be the same
+    
+    results_only : set to 1 if you want to calculate the results and not display them
+    show_work : 1 means print out points and names as they're being added
+    debug_reject_headers : 1 means print out any results that couldn't be added for some reason
+    """
 
     ##Make blank tables - there's probably a way to automate this but...
     smooth_data = {
@@ -227,6 +233,8 @@ def webScraper(first_names, last_names):
     top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
+        if show_work:
+            print("\n", f"Calculating points for {first_name} {last_name}.", "\n")
         response = requests.get(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
@@ -237,7 +245,9 @@ def webScraper(first_names, last_names):
                 link_text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
                 and "-- Combine --" not in link_text
             ):
-                top6_results_links.append(Result(link, debug_reject_headers))
+                top6_results_links.append(
+                    Result(link, first_name + " " + last_name, debug_reject_headers)
+                )
 
     # Check rounds
     for result in top6_results_links:
@@ -260,10 +270,15 @@ def webScraper(first_names, last_names):
                 num_points = max(4 - result.placement, 1)
                 for i in range(2):
                     if result.style and result.level and dance:
-                        eval(result.style + "_data")[result.level][dance][
-                            i
-                        ] += num_points
-            # Mainly for troubleshooting, will print to terminal every round we got points
+                        # Events with level "syllabus" count for bronze points
+                        if result.level == "syllabus":
+                            level = "bronze"
+                        # Events with level "open" count for pre-champ points
+                        elif result.level == "open":
+                            level = "pre-champ"
+                        else:
+                            level = result.level
+                        eval(result.style + "_data")[level][dance][i] += num_points
             if show_work:
                 print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
 
@@ -282,6 +297,17 @@ def webScraper(first_names, last_names):
                             if d[higher_level][dance][1]:
                                 d[level][dance][0] += 7
 
+    # For compChecker.py via dancerClass
+    if results_only:
+        return {
+            "smooth": smooth_data,
+            "standard": standard_data,
+            "rhythm": rhythm_data,
+            "latin": latin_data,
+        }
+    
+    # The rest is all for website.py:
+    
     # Probably there's a way to automate this
     # Make dictionaries to dataframes
     smooth_df = pd.DataFrame(smooth_data)

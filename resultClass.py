@@ -1,139 +1,53 @@
 import requests
 from bs4 import BeautifulSoup
+from utils import which_ele_is_in_str, lists_both_have_ele_in_str
+from eventClass import Event
 
 
-class Result:
+class Result(Event):
     """
-    Result class.
+    Class for results.
 
-    self.raw_text       : raw text from the individual results.o2cm.com page for that event
+    self.dancer_name    : dancer's name for this result in form "first_name last_name"
     self.link           : link from the individual results.o2cm.com page for that event
     self.placement      : what place the person got in the event
+    self.dances_string  : (overrides Event) ,-delimited list of dances
+
+    from Event class:
+    self.raw_text       : raw text from the individual results.o2cm.com page for that event
     self.level          : what level the event was
     self.style          : what style the event was
-    self.dances_string  : ,-delimited list of dances
     self.dances         : list of dances in the result
+    self.debug_reject_headers: 1 to print out things we don't know what to do with
     """
 
-    def __init__(self, result, debug_reject_headers=0):
+    def __init__(self, result, dancer_name, debug_reject_headers=0):
         """
         Initialize the Result class.
 
         Inputs:
-            result - html element object from beautiful soup
-            driver - web object from beautiful soup
-            debug_reject_headers - 1 to print dances (headers) that the program doesn't know what to do with
+            result : html element object from beautiful soup
+            dancer_name : dancer's name in form "first_name last_name"
+            debug_reject_headers : 1 to print dances (headers) that the program doesn't know what to do with
         """
+        self.dancer_name = dancer_name
         self.debug_reject_headers = debug_reject_headers
-        self.raw_text = result.text
         self.link = result.get("href")
+        super().__init__(result, debug_reject_headers)
         self.placement = int(self.raw_text.split(")")[0])
-        self.level = self._getLevel()
-        self.style = self._getStyle()
-        self.dances = self._getDances()
         self.dances_string = ", ".join(self.dances)
 
     def __repr__(self):
         """
         When the Result object is printed, this is what is returned
         """
-        return f"#{self.placement} in {self.level} {self.style} {self.dances_string}."
-
-    def _which_ele_is_in_str(self, list, string):
-        """
-        Returns the first element from list that is in string.
-        """
-        return next((x for x in list if x in string), None)
-
-    def _lists_both_have_ele_in_str(self, list1, list2, string):
-        """
-        Returns if string is in both list1 and list2.
-        """
-        return self._which_ele_is_in_str(list1, string) and self._which_ele_is_in_str(
-            list2, string
-        )
-
-    def _getStyle(self):
-        """
-        Gets the style from the result.
-        """
-        result_text = self.raw_text.lower()
-        styles_list = ["smooth", "standard", "rhythm", "latin"]
-
-        style = self._which_ele_is_in_str(styles_list, result_text)
-        if style:
-            return style
-
-        latin_rhythm_dance_list = [
-            "cha",
-            "rumba",
-            "samba",
-            "jive",
-            "paso doble",
-            "swing",
-            "mambo",
-            "bolero",
-        ]
-        ballroom_dance_list = ["waltz", "tango", "foxtrot", "quickstep", "ballroom"]
-        american_list = ["am.", "amer.", "american"]
-        international_list = ["intl", "international", "ballroom"]
-
-        # Standard at the end because sometimes standard is called ballroom
-        if self._lists_both_have_ele_in_str(
-            ballroom_dance_list, american_list, result_text
-        ):
-            return "smooth"
-        elif self._lists_both_have_ele_in_str(
-            latin_rhythm_dance_list, american_list, result_text
-        ):
-            return "rhythm"
-        elif self._lists_both_have_ele_in_str(
-            latin_rhythm_dance_list, international_list, result_text
-        ):
-            return "latin"
-        elif self._lists_both_have_ele_in_str(
-            ballroom_dance_list, international_list, result_text
-        ):
-            return "standard"
-        elif self.debug_reject_headers:
-            print(f"{result_text}: has no valid style.")
-
-        return None
-
-    def _getLevel(self):
-        result_text = self.raw_text.lower()
-        champ_list = ["champ", "championship"]
-        prechamp_list = ["pre-champ", "pre-championship", "prechamp", "prechampionship"]
-        novice_list = ["novice", "open"]
-        gold_list = ["gold", "advanced"]
-        silver_list = ["silver", "intermediate"]
-        bronze_list = ["bronze", "beginner", "syllabus", "other"]
-        newcomer_list = ["newcomer"]
-
-        # novice at the end because "open" could be in the names of other events
-        # prechamp before champ because prechamp has champ in the name
-        levels_list = [
-            prechamp_list,
-            champ_list,
-            gold_list,
-            silver_list,
-            bronze_list,
-            newcomer_list,
-            novice_list,
-        ]
-
-        # Returns the first element from the level list that is matched
-        for lst in levels_list:
-            if self._which_ele_is_in_str(lst, result_text):
-                return lst[0]
-        if self.debug_reject_headers:
-            print(f"{result_text}: has no valid level.")
-
-        return None
+        return f"#{self.placement} in {self.level.title()} {self.style.title()} {self.dances_string.title()}."
 
     def _getDances(self):
         """
         Returns a list of what dances are in the event.
+        Have to refactor from the Event class because this isn't the title on entries.o2cm.com,
+        but rather the results from results.o2cm.com/individual
         """
         result_text = self.raw_text.lower()
         dance_list = [
@@ -152,39 +66,34 @@ class Result:
             "bolero",
         ]
 
-        # If the event name has a dance in it, return the dance
-        dance = self._which_ele_is_in_str(dance_list, result_text)
-        if dance:
-            return [dance]
-
-        # If not, then it's probably because it's a multi-dance event
         # Click in to the event
         response = requests.get(self.link)
         soup = BeautifulSoup(response.text, "html.parser")
+
+        # Make sure dancer actually made the final (may not be the case if <6 couples in final)
+        if self.dancer_name not in soup.get_text():
+            return [""]
 
         # Pull all the table headers
         headers = soup.select(".h3")
         headers_text = [header.text.lower() for header in headers]
 
-        # See which headers have names in the dance_list
-        dances = list(filter(lambda x: x in headers_text, dance_list))
-
-        # Add jank becuase viennese waltz sometimes has a different name
-        if "viennese waltz" in headers_text:
-            dances.append("v. waltz")
+        # See which headers have names in the dance_list and which don't
+        dances = []
+        reject_dances = []
+        for header_text in headers_text:
+            dance = which_ele_is_in_str(dance_list, header_text)
+            if dance:
+                dances.append(dance)
+            # Add jank becuase viennese waltz sometimes has a different name
+            elif "viennese waltz" in headers_text:
+                dances.append("v. waltz")
+            elif self.debug_reject_headers and header_text != "summary":
+                reject_dances.append(header_text)
 
         # Print out any headers we haven't somehow haven't accounted for
-        if self.debug_reject_headers:
-            reject_dances = []
-            for header in headers_text:
-                if (
-                    header not in dance_list
-                    and header != "summary"
-                    and header != "viennese waltz"
-                ):
-                    reject_dances.append(header)
-            if reject_dances:
-                print(f"{result_text}: invalid dance(s) {reject_dances}")
+        if reject_dances:
+            print(f"{result_text}: invalid dance(s) {reject_dances}")
 
         if dances:
             return dances
