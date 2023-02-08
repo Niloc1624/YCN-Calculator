@@ -55,15 +55,13 @@ def compChecker(comp_website, show_work=1, debug_reject_headers=1):
     for information in dancers_and_events_dict.keys():
         events = dancers_and_events_dict[information]["events"]
         dancer = dancers_and_events_dict[information]["dancer_obj"]
-        if show_work:
-            print(f"Placed out entries for {dancer}:")
         for event in events:
             for dance in event.dances:
                 points = dancer.get_points(event.style, event.level, dance)
                 if (points >= 7) and (event.level != "champ"):
-                    
+
                     ##ADD KEEPING TRACK HERE##
-                    
+
                     if show_work:
                         print(
                             f"{dancer} is registered for {event}, but has {points} points in {dance}."
