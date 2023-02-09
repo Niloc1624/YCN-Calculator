@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 from eventClass import Event
 from dancerClass import Dancer
+from time import time
+from utils import remove_TBAs_and_dups
 
 ## Manual Enter
 manual = 1
@@ -17,21 +19,23 @@ def compChecker(comp_website, show_work=1, debug_reject_headers=1):
     show_work: 1 for printing things to screen as it calculates
     debug_reject_headers: 1 for printing out things that could not be evaluated
     """
+    # Start timer
+    start_time = time()
+
     # Go to the website
     response = requests.get(comp_website)
     soup = BeautifulSoup(response.text, "html.parser")
 
     # Find everyone who is regsitered at the competition
     dropdown = soup.find("select", attrs={"id": "selEnt"})
-    competitor_name_elements_with_TBAs = dropdown.find_all("option")[1:]
-    # Remove entries that start with "TBA" (case-sensitive)
-    competitor_name_elements = [
-        ele for ele in competitor_name_elements_with_TBAs if ele.text[:3] != "TBA"
-    ]
+    competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
+    competitor_name_elements = remove_TBAs_and_dups(
+        competitor_name_elements_with_TBAs_and_dups
+    )
 
     num_dancers = len(competitor_name_elements)
     if show_work:
-        print("\n", f"There are {num_dancers} dancers to check.")
+        print("\n", f"There are {num_dancers} dancers to check for {comp_website}")
 
     # Make dictionary skeleton of dancers for level/dance combo
     dancers_and_events_dict = {}
@@ -59,7 +63,20 @@ def compChecker(comp_website, show_work=1, debug_reject_headers=1):
         dancer = dancers_and_events_dict[information]["dancer_obj"]
         dancer.calculate_points(show_work, debug_reject_headers)
         if show_work:
-            print(f"Completed {i+1}/{num_dancers} dancers.")
+            dancers_completed = i + 1
+            time_in_minutes = round((time() - start_time) / 60, 1)
+            est_min_remaining = round(
+                time_in_minutes
+                * (num_dancers - dancers_completed)
+                / (dancers_completed),
+                1,
+            )
+            print(
+                f"Completed {dancers_completed}/{num_dancers} dancers in {time_in_minutes} minutes. "
+                + f"Estimated {est_min_remaining} minutes remaining."
+            )
+            if i + 1 == num_dancers:
+                print("\n\n")
 
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
@@ -89,6 +106,14 @@ def compChecker(comp_website, show_work=1, debug_reject_headers=1):
             "\n",
         )
 
+    # End timer
+    time_in_seconds = time() - start_time
+    time_in_minutes = round(time_in_seconds / 60, 1)
+    seconds_per_dancer = round(time_in_seconds / num_dancers, 1)
+    print(
+        f"This took {time_in_minutes} minutes to run for {num_dancers} dancers. "
+        + f"That is an average {seconds_per_dancer} seconds/dancer."
+    )
     return
 
 
