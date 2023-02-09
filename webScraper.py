@@ -6,8 +6,8 @@ from resultClass import Result
 ## Manual Enter
 manual = 0
 if manual:
-    first_names = "Colin"
-    last_names = "Richter"
+    first_names = "first_names"
+    last_names = "last_names"
 
 
 def webScraper(
@@ -19,7 +19,7 @@ def webScraper(
     first_names : comma (or comma space(s))-delimited string of first names to check
     last_names : comma (or comma space(s))-delimited string of last names to check
     ^^Note that the length of the above two lists must be the same
-    
+
     results_only : set to 1 if you want to calculate the results and not display them
     show_work : 1 means print out points and names as they're being added
     debug_reject_headers : 1 means print out any results that couldn't be added for some reason
@@ -263,6 +263,7 @@ def webScraper(
             num_rounds = len(options)
 
         # Check if we earned points. If we did, add those points to the data
+        points_added = False
         if (num_rounds == 2 and result.placement <= 3) or (
             num_rounds > 2 and result.placement <= 6
         ):
@@ -279,8 +280,10 @@ def webScraper(
                         else:
                             level = result.level
                         eval(result.style + "_data")[level][dance][i] += num_points
-            if show_work:
+                        points_added = True
+            if show_work and points_added:
                 print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
+            
 
     # Calculate the double points for level below and +7 for 2+ levels below rules
     for d in [smooth_data, standard_data, rhythm_data, latin_data]:
@@ -305,9 +308,9 @@ def webScraper(
             "rhythm": rhythm_data,
             "latin": latin_data,
         }
-    
+
     # The rest is all for website.py:
-    
+
     # Probably there's a way to automate this
     # Make dictionaries to dataframes
     smooth_df = pd.DataFrame(smooth_data)
