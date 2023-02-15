@@ -1,5 +1,5 @@
 # YCN-Calculator
-This is a YCN point calculator that scrapes from https://results.o2cm.com/. It is very janky, probably isn't right, and is horribly inelegant. BUT, it's better than nothing.
+This is a YCN point calculator that scrapes from https://results.o2cm.com/. It is very janky, probably isn't right, and is horribly inelegant. BUT, it's better than nothing. Points are calculated according to MIT's system: http://ballroom.mit.edu/index.php/ycn-proficiency-points/
 
 If you want to use this to check a dancer's YCN points you have two options:
 - Run website.py on your local machine and open the localhost link it outputs in your browser of choice.
