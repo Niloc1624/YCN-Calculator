@@ -8,7 +8,7 @@ from utils import remove_TBAs_and_dups
 ## Manual Enter
 manual = 1
 if manual:
-    comp_code = "cub"
+    comp_code = "rpi"
     first_name = ""
     last_name = ""
 

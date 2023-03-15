@@ -19,13 +19,16 @@ class Dancer:
         dancer_name : name of dancer as beautiful soup element
         """
         raw_text = dancer_name.text
+
         if format:
-            self.first_name = raw_text.split()[0]
-            self.last_name = raw_text.split()[1]
+            # assume no spaces in first name
+            self.first_name = raw_text.split(" ", 1)[0]
+            self.last_name = raw_text.split(" ", 1)[1]
             self.full_name = raw_text
         else:
-            self.first_name = raw_text.split(", ")[1]
-            self.last_name = raw_text.split(", ")[0]
+            # rsplit because of people with commas in last name
+            self.first_name = raw_text.rsplit(", ", 1)[1]
+            self.last_name = raw_text.rsplit(", ", 1)[0]
             self.full_name = self.first_name + " " + self.last_name
 
     def __repr__(self):
