@@ -2,4 +2,7 @@
 /.pytest_cache
 /__pycache__
 /testing.py
-/Old_Selenium_Not_In_Use
+/.idea
+/SQLite
+/Google_Sheets
+/.vscode
