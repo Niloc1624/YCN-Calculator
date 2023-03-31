@@ -52,6 +52,7 @@ class Result(Event):
         result_text = self.raw_text.lower()
         dance_list = [
             "v. waltz",
+            "viennese waltz", # this is jank but removed later
             "waltz",
             "tango",
             "foxtrot",
@@ -86,8 +87,10 @@ class Result(Event):
             if dance:
                 dances.append(dance)
             # Add jank becuase viennese waltz sometimes has a different name
-            elif "viennese waltz" in headers_text:
-                dances.append("v. waltz")
+            elif "viennese waltz" in dances:
+                dances.remove("viennese waltz")
+                if "v. waltz" not in dances:
+                    dances.append("v. waltz")
             elif self.debug_reject_headers and header_text != "summary":
                 reject_dances.append(header_text)
 
