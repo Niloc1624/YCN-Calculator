@@ -283,7 +283,6 @@ def webScraper(
                         points_added = True
             if show_work and points_added:
                 print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
-            
 
     # Calculate the double points for level below and +7 for 2+ levels below rules
     for d in [smooth_data, standard_data, rhythm_data, latin_data]:
@@ -349,9 +348,7 @@ def webScraper(
 
     output[0] += f"from https://results.o2cm.com/."
     output.append(
-        """If you have 7 points in any dance, you have pointed out of that entire style for that level.
-         For example, having 7 Bronze Latin Rumba points means you have pointed out of Bronze Latin.
-         YCN points are calculated according to this system:
+        """YCN points are calculated according to this system:
          http://ballroom.mit.edu/index.php/ycn-proficiency-points/."""
     )
 

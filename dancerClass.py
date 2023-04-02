@@ -55,4 +55,8 @@ class Dancer:
         # You have to place out of champ to place out of syllabus
         if level.lower() == "open":
             level = "champ"
-        return self.styles_data_dict[style.lower()][level][dance.lower()][0]
+        # Only try to get points for an event if it has a valid style, level, and dance
+        if style and level and dance:
+                return self.styles_data_dict[style.lower()][level][dance.lower()][0]
+        else:
+            return 0

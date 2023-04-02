@@ -61,9 +61,7 @@ def compChecker(
 
     num_dancers = len(competitor_name_elements)
     if show_work:
-        print(
-            "\n", f"{num_dancers} dancer(s) to check for {comp_entries_website}"
-        )
+        print("\n", f"{num_dancers} dancer(s) to check for {comp_entries_website}")
 
     # Make dictionary skeleton of dancers for level/dance combo
     dancers_and_events_dict = {}
@@ -116,11 +114,14 @@ def compChecker(
 
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
+    num_dancers_with_events = 0
     for information in dancers_and_events_dict.keys():
         events = dancers_and_events_dict[information]["events"]
         dancer = dancers_and_events_dict[information]["dancer_obj"]
         dancer_placed_out = 0
+        dancer_has_events = 0
         for event in events:
+            dancer_has_events = 1
             for dance in event.dances:
                 points = dancer.get_points(event.style, event.level, dance)
                 if (points >= 7) and (event.level != "champ"):
@@ -134,11 +135,14 @@ def compChecker(
                             f"{dancer} is registered for {event}, but has {points} points in {dance}."
                         )
         num_found += dancer_placed_out
+        num_dancers_with_events += dancer_has_events
 
     if show_work:
         print(
             "\n",
-            f"{num_found}/{num_dancers} dancers are registered for an event they have placed out of.",
+            f"{num_dancers_with_events}/{num_dancers} dancers have events.",
+            "\n",
+            f"{num_found}/{num_dancers_with_events} are registered for an event they have placed out of.",
             "\n",
         )
 

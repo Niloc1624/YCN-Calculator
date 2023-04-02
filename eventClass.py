@@ -147,7 +147,7 @@ class Event:
 
         result_text = self.raw_text.lower()
         event_dance_letters = result_text[
-            result_text.find("(") + 1 : result_text.find(")")
+            result_text.rfind("(") + 1 : result_text.rfind(")")
         ]
 
         dances = []
@@ -157,8 +157,12 @@ class Event:
                     dances.append("samba")
                 elif self.style == "rhythm":
                     dances.append("swing")
-            else:
+            elif dance_letter in dances_dictionary:
                 dances.append(dances_dictionary[dance_letter])
+            elif self.debug_reject_headers:
+                print(
+                    f"{dance_letter}: not a valid dance letter in {event_dance_letters}."
+                )
 
         if dances:
             return dances

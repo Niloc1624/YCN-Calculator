@@ -52,7 +52,7 @@ class Result(Event):
         result_text = self.raw_text.lower()
         dance_list = [
             "v. waltz",
-            "viennese waltz", # this is jank but removed later
+            "viennese waltz",  # this second vwaltz is jank but is addressed later
             "waltz",
             "tango",
             "foxtrot",
