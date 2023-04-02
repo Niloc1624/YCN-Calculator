@@ -16,7 +16,6 @@ Modules used
 - beautifulsoup4
 - pandas
 - flask
-- time
 - requests
 - gunicorn
 
