@@ -20,6 +20,7 @@ Modules used
 - gunicorn
 
 Since https://ballroom.union.rpi.edu/calculator is back up and running again, my next steps will be:
+- Give ballroom-calc.azurewebsites.net feedback to the user that it's actually doing something
 - Make compChecker.py available on ballroom-calc.azurewebsites.net
 - Make a database
 - Add features to retroactively see how many points a dancer earned between two dates
