@@ -21,16 +21,19 @@ class Result(Event):
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     """
 
-    def __init__(self, result, dancer_name, debug_reject_headers=0):
+    def __init__(self, result, first_name, last_name, date, debug_reject_headers=0):
         """
         Initialize the Result class.
 
         Inputs:
             result : html element object from beautiful soup
-            dancer_name : dancer's name in form "first_name last_name"
+            first_name : dancer's first name
+            last_name : dancer's last name
             debug_reject_headers : 1 to print dances (headers) that the program doesn't know what to do with
         """
-        self.dancer_name = dancer_name
+        self.first_name = first_name
+        self.last_name = last_name
+        self.dancer_name = first_name + last_name
         self.debug_reject_headers = debug_reject_headers
         self.link = result.get("href")
         super().__init__(result, debug_reject_headers)
