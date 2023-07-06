@@ -8,6 +8,8 @@ class Result(Event):
     """
     Class for results.
 
+    self.first_name     : dancer's first name for this result
+    self.last_name      : dancer's last name for this result
     self.dancer_name    : dancer's name for this result in form "first_name last_name"
     self.link           : link from the individual results.o2cm.com page for that event
     self.placement      : what place the person got in the event
@@ -33,7 +35,7 @@ class Result(Event):
         """
         self.first_name = first_name
         self.last_name = last_name
-        self.dancer_name = first_name + last_name
+        self.dancer_name = first_name + " " + last_name
         self.debug_reject_headers = debug_reject_headers
         self.link = result.get("href")
         super().__init__(result, debug_reject_headers)
@@ -44,7 +46,7 @@ class Result(Event):
         """
         When the Result object is printed, this is what is returned
         """
-        return f"#{self.placement} in {self.level.title()} {self.style.title()} {self.dances_string.title()}."
+        return f"#{self.placement} in {self.level.title()} {self.style.title()} {self.dances_string.title().strip()}."
 
     def _getDances(self):
         """
@@ -75,7 +77,7 @@ class Result(Event):
         soup = BeautifulSoup(response.text, "html.parser")
 
         # Make sure dancer actually made the final (may not be the case if <6 couples in final)
-        if self.dancer_name not in soup.get_text():
+        if self.dancer_name.casefold() not in soup.get_text().casefold():
             return [""]
 
         # Pull all the table headers

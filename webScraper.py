@@ -249,13 +249,13 @@ def webScraper(
         date = soup.find(text=date_pattern).text[:8]
         for element in soup.find_all('td'):
             elem_text = element.text
-            for child in element.children:
+            for item in element.contents:
                 if (
-                    child.name == 'a' and child.text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
-                    and "-- Combine --" not in child.text
+                    item.name == 'a' and item.text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
+                    and "-- Combine --" not in item.text
                 ):
                     top6_results_links.append(
-                        Result(child, first_name, last_name, date, debug_reject_headers)
+                        Result(item, first_name, last_name, date, debug_reject_headers)
                     )
             else: 
                 match = re.search(date_pattern, elem_text)
