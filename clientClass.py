@@ -31,11 +31,12 @@ class Client:
         """
 
         #split dancer name for storage in separate columns
-        first_name, last_name = [result.dancer_name.split(' ')[i] for i in (0, 1)]
+        first_name = result.dancer.first_name
+        last_name = result.dancer.last_name
         level = result.level
         style = result.style
         dances = result.getDances()
-        date = result
+        date = result.date
         num_points = result
         comp_code = result
         self.client.flush()
