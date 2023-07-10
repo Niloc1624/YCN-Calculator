@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from resultClass import Result
+from datetime import date
 
 ## Manual Enter
 manual = 0
@@ -246,7 +247,7 @@ def webScraper(
         #the date *should* be assigned before any link is, but I don't trust O2CM
         #or my own code, for that matter
         #so it's getting initialized here too to be safe
-        date = soup.find(text=date_pattern).text[:8]
+        date_str = soup.find(text=date_pattern).text[:8]
         for element in soup.find_all('td'):
             elem_text = element.text
             for item in element.contents:
@@ -254,13 +255,18 @@ def webScraper(
                     item.name == 'a' and item.text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
                     and "-- Combine --" not in item.text
                 ):
+                    #Listen I'm hard-coding this because if O2CM is still in use 
+                    #and hasn't updated their date storage by The Year Of Our Lord *2100*
+                    #you have bigger problems
+                    #If I'm somehow still alive at 106 you can complain to me then
+                    date_object = date(int(('20' + date_str[6:])), int(date_str[:2]), int(date_str[3:5]))
                     top6_results_links.append(
-                        Result(item, first_name, last_name, date, debug_reject_headers)
+                        Result(item, first_name, last_name, date_object, debug_reject_headers)
                     )
             else: 
                 match = re.search(date_pattern, elem_text)
                 if match:
-                    date = match.group()
+                    date_str = match.group()
 
 
     # Check rounds
