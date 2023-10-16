@@ -15,6 +15,7 @@ class Result(Event):
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
     self.date           : date of the event stored with date object
+    self.comp_code      : three-letter competition code identifier 
     
     from Event class:
     self.raw_text       : raw text from the individual results.o2cm.com page for that event
@@ -24,7 +25,8 @@ class Result(Event):
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     """
 
-    def __init__(self, result, first_name, last_name, date, debug_reject_headers=0):
+    def __init__(self, result, first_name, last_name, date, comp_code,
+                 debug_reject_headers=0):
         """
         Initialize the Result class.
 
@@ -32,13 +34,15 @@ class Result(Event):
             result : html element object from beautiful soup
             first_name : dancer's first name
             last_name : dancer's last name
-            date : date of the event stored with date object 
+            date : date of the event stored with date object
+            comp_code: three-letter competition code identifier  
             debug_reject_headers : 1 to print dances (headers) that the program doesn't know what to do with
         """
         self.first_name = first_name
         self.last_name = last_name
         self.dancer_name = first_name + " " + last_name
         self.date = date
+        self.comp_code = comp_code
         self.debug_reject_headers = debug_reject_headers
         self.link = result.get("href")
         super().__init__(result, debug_reject_headers)

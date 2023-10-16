@@ -15,10 +15,10 @@ class Client:
         creds_path = os.path.join(os.getcwd(), 'Credentials', 'credentials.json')
         creds = Credentials.from_service_account_file(creds_path)
         self.client = gspread.authorize(creds)
-        self.spreadsheet = self.client.open_by_key('1d-dE2idytfW8E_rfIs2lsrO_OQSZcgKjXr8zLSr0reg')
+        self.spreadsheet = self.client.open_by_url('1d-dE2idytfW8E_rfIs2lsrO_OQSZcgKjXr8zLSr0reg')
         #variables to access the Raw_Data and Metadata worksheets respectively
-        self.raw_data = self.spreadsheet.worksheet('0')
-        self.metadata = self.spreadsheet.worksheet('1806068062')
+        self.raw_data = self.spreadsheet.worksheet('Raw_Data')
+        self.metadata = self.spreadsheet.worksheet('Metadata')
 
     def storeResult(self, result):
         """
@@ -37,8 +37,11 @@ class Client:
         style = result.style
         dances = result.getDances()
         date = result.date
-        num_points = result
-        comp_code = result
+        #leaving these to implement later, they're less essential and
+        #I think they're going to depend on other program specifics
+        #num_points = max(4 - result.placement, 1)
+        #comp_code
+        self.spreadsheet.append_rows([first_name, last_name, level, style, dances, date])
         self.client.flush()
 
     def checkResult(self, result):

@@ -2,6 +2,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from dbClass import Database
 from resultClass import Result
 from datetime import date
 
@@ -233,6 +234,7 @@ def webScraper(
     last_names = last_names.split(",")
 
     top6_results_links = []
+    db = Database("YCN.db")
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
         if show_work:
@@ -259,25 +261,16 @@ def webScraper(
                     and item.text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
                     and "-- Combine --" not in item.text
                 ):
-                    # Listen I'm hard-coding this because if O2CM is still in use
-                    # and hasn't updated their date storage by The Year Of Our Lord *2100*
-                    # you have bigger problems
-                    # If I'm somehow still alive at 106 you can complain to me then
-                    date_object = date(
-                        int(("20" + date_str[6:])),
-                        int(date_str[:2]),
-                        int(date_str[3:5]),
-                    )
-                    top6_results_links.append(
-                        Result(
-                            item,
-                            first_name,
-                            last_name,
-                            date_object,
-                            debug_reject_headers,
-                        )
-                    )
-            else:
+                    #Listen I'm hard-coding this because if O2CM is still in use 
+                    #and hasn't updated their date storage by The Year Of Our Lord *2100*
+                    #you have bigger problems
+                    #If I'm somehow still alive at 106 you can complain to me then
+                    date_object = date(int(('20' + date_str[6:])), int(date_str[:2]), int(date_str[3:5]))
+                    res = Result(item, first_name, last_name, date_object, debug_reject_headers)
+                    top6_results_links.append(res)
+                    if db.isOutdated(res): 
+                        db.storeResult(res)
+            else: 
                 match = re.search(date_pattern, elem_text)
                 if match:
                     date_str = match.group()
