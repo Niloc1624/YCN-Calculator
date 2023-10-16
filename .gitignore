@@ -8,3 +8,5 @@
 /.vscode
 /Credentials/credentials.json
 /Credentials/ycn-calculator-database-*
+/resultRecorder.py
+/YCN.db

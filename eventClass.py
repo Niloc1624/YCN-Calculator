@@ -3,7 +3,10 @@ from utils import which_ele_is_in_str, lists_both_have_ele_in_str
 
 class Event:
     """
-    Class for an event
+    Class for a kind of event (e.g. Newcomer Smooth Waltz or
+    Bronze Standard Foxtrot/Quickstep.)
+    Note that this does _not_ refer to a specific event at a given
+    competition, but to that kind of event in general.
 
     self.raw_text       : raw text from entries.o2cm.com for that event
     self.debug_reject_headers: 1 to print out things we don't know what to do with
