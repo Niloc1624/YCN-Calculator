@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from resultClass import Result
+from datetime import date
 
 ## Manual Enter
 manual = 0
@@ -240,17 +241,17 @@ def webScraper(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
         soup = BeautifulSoup(response.text, "html.parser")
-        # find each date and create Result for each top 6 link that's
-        # associated with it
-        date_pattern = re.compile(r"\d{2}-\d{2}-\d{2}")
+        #find each date and create Result for each top 6 link that's
+        #associated with it
+        date_pattern = re.compile(r'\d{2}-\d{2}-\d{2}')
         # the date *should* be assigned before any link is, but I don't trust O2CM
         # or my own code, for that matter
         # so it's getting initialized here too to be safe
         date = soup.find(text=date_pattern)
         if date:
-            date = date.text[:8]
-
-        for element in soup.find_all("td"):
+            date_str = date.text[:8]
+        
+        for element in soup.find_all('td'):
             elem_text = element.text
             for item in element.contents:
                 if (
@@ -258,13 +259,19 @@ def webScraper(
                     and item.text.startswith(("1)", "2)", "3)", "4)", "5)", "6)"))
                     and "-- Combine --" not in item.text
                 ):
+                    #Listen I'm hard-coding this because if O2CM is still in use 
+                    #and hasn't updated their date storage by The Year Of Our Lord *2100*
+                    #you have bigger problems
+                    #If I'm somehow still alive at 106 you can complain to me then
+                    date_object = date(int(('20' + date_str[6:])), int(date_str[:2]), int(date_str[3:5]))
                     top6_results_links.append(
-                        Result(item, first_name, last_name, date, debug_reject_headers)
+                        Result(item, first_name, last_name, date_object, debug_reject_headers)
                     )
             else:
                 match = re.search(date_pattern, elem_text)
                 if match:
                     date = match.group()
+
 
     # Check rounds
     for result in top6_results_links:
