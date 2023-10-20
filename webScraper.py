@@ -244,10 +244,13 @@ def webScraper(
         #find each date and create Result for each top 6 link that's
         #associated with it
         date_pattern = re.compile(r'\d{2}-\d{2}-\d{2}')
-        #the date *should* be assigned before any link is, but I don't trust O2CM
-        #or my own code, for that matter
-        #so it's getting initialized here too to be safe
-        date_str = soup.find(text=date_pattern).text[:8]
+        # the date *should* be assigned before any link is, but I don't trust O2CM
+        # or my own code, for that matter
+        # so it's getting initialized here too to be safe
+        date = soup.find(text=date_pattern)
+        if date:
+            date_str = date.text[:8]
+        
         for element in soup.find_all('td'):
             elem_text = element.text
             for item in element.contents:
