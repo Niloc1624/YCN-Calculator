@@ -241,8 +241,8 @@ def webScraper(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
         soup = BeautifulSoup(response.text, "html.parser")
-        #find each date and create Result for each top 6 link that's
-        #associated with it
+        # find each date and create Result for each top 6 link that's
+        # associated with it
         date_pattern = re.compile(r'\d{2}-\d{2}-\d{2}')
         # the date *should* be assigned before any link is, but I don't trust O2CM
         # or my own code, for that matter
