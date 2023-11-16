@@ -7,7 +7,7 @@ import os
 manual = True
 plot = True
 if manual:
-    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc", "idg", "upc", "hbi", "rpi", "pbd", "tub", "ecf", "usa"]
+    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc", "idg"]
 
 
 def plot_past_comps(comp_code_list, show_work=True, plot=True):
@@ -35,11 +35,12 @@ def plot_past_comps(comp_code_list, show_work=True, plot=True):
             headers = next(reader)  # First row is headers
             for row in reader:
                 competition = row[0]
-                values = {
-                    int(year): (int(count) if count else None)
-                    for year, count in zip(headers[1:], row[1:])
-                }
-                data[competition] = values
+                if competition in comp_code_list:
+                    values = {
+                        int(year): (int(count) if count else None)
+                        for year, count in zip(headers[1:], row[1:])
+                    }
+                    data[competition] = values
 
     start_year = float("inf")
     end_year = 0
