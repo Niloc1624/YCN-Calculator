@@ -1,4 +1,5 @@
 from countCompetitorsPastComps import count_competitors_past_comps
+from utils import get_most_recent_comp_year
 import matplotlib.pyplot as plt
 import csv
 import os
@@ -7,7 +8,7 @@ import os
 manual = True
 plot = True
 if manual:
-    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc", "idg"]
+    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc"]
 
 
 def plot_past_comps(comp_code_list, show_work=True, plot=True):
@@ -49,14 +50,22 @@ def plot_past_comps(comp_code_list, show_work=True, plot=True):
         print()
 
     for comp_code in comp_code_list:
-        # Check if data for this competition is already present
-        if comp_code not in data:
-            num_competitors_dict = count_competitors_past_comps(comp_code, show_work)
-            data[comp_code] = num_competitors_dict
-        else:
-            num_competitors_dict = data[comp_code]
+        most_recent_year_website = get_most_recent_comp_year(comp_code)
 
-        returned_years = list(num_competitors_dict.keys())
+        if comp_code in data:
+            most_recent_year_csv = max(data[comp_code].keys())
+            if most_recent_year_website > most_recent_year_csv:
+                # Fetch data from the website for the missing years
+                new_data = count_competitors_past_comps(
+                    comp_code, show_work, earliest_year=most_recent_year_csv + 1
+                )
+                data[comp_code].update(new_data)
+        else:
+            # Fetch all available data for this competition
+            data[comp_code] = count_competitors_past_comps(comp_code, show_work)
+
+        # Update start and end years
+        returned_years = list(data[comp_code].keys())
         if returned_years:
             start_year = min(min(returned_years), start_year)
             end_year = max(max(returned_years), end_year)

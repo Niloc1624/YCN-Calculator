@@ -45,16 +45,20 @@ def count_competitors_in_comp(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     dropdown = soup.find("select", attrs={"id": "selEnt"})
+
+    # If there is no dropdown, there are no competitors, probably because there is an error on the page
     try:
         competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
-    # If there is no dropdown, there are no competitors, probably because there is an error on the page
     except:
         return None
+
     # Remove dancers who start with "TBA" (case-sensitive) or are duplicates
     competitor_name_elements = remove_TBAs_and_dups(
         competitor_name_elements_with_TBAs_and_dups
     )
-    if "results" in url:
+
+    # removed because it's no longer needed here
+    """if "results" in url:
         header = soup.find("td", class_="h4")
         year = header.text.split(" ")[-1]
         output = {
@@ -62,11 +66,12 @@ def count_competitors_in_comp(url):
             "year": int(year),
             "comp_code": get_comp_code_from_url(url),
         }
-    else:
-        output = {
-            "num_competitors": len(competitor_name_elements),
-            "comp_code": get_comp_code_from_url(url),
-        }
+    else:"""
+
+    output = {
+        "num_competitors": len(competitor_name_elements),
+        "comp_code": get_comp_code_from_url(url),
+    }
     return output
 
 
@@ -90,3 +95,44 @@ def get_comp_code_from_url(url, with_year=False):
         num_chars = 3
 
     return url.split("event=")[1][:num_chars].lower()
+
+
+def get_comp_year_from_url(url):
+    """
+    Returns the competition year from a given URL element.
+
+    Args:
+    url (str): The URL of the competition to get the year for.
+
+    Returns:
+    int: The competition year.
+    """
+
+    if "results" not in url:
+        raise "Must be a https://results.o2cm.com/ URL to have a year"
+
+    year = "20" + url.split("event=")[1][3:5]
+
+    return int(year)
+
+
+def get_most_recent_comp_year(comp_code):
+    """
+    Returns the most recent year of a competition with the given competition code.
+
+    Args:
+    comp_code (str): The competition code to search for.
+
+    Returns:
+    int: The most recent year of the competition.
+    """
+    # Go to the events website
+    response = requests.get("https://results.o2cm.com/")
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    for link in soup.find_all("a"):
+        link_url = "https://results.o2cm.com/" + link.get("href")
+        if get_comp_code_from_url(link_url) == comp_code:
+            most_recent_year = get_comp_year_from_url(link_url)
+            break
+    return most_recent_year
