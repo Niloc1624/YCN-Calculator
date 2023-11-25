@@ -1,112 +1,96 @@
-from countCompetitorsPastComps import count_competitors_past_comps
-from utils import get_most_recent_comp_year
+import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import csv
 import os
+from utils import get_most_recent_comp_year
+from countCompetitorsPastComps import count_competitors_past_comps
 
-## Manual Enter
-manual = True
-plot = True
-if manual:
-    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc"]
-
-
-def plot_past_comps(comp_code_list, show_work=True, plot=True):
-    """
-    Plots the number of competitors in each past competition with the given competition code.
-
-    Parameters:
-    comp_code_list (list): A list of competition codes to plot.
-    show_work (bool): Whether to print progress information to the console. Default is True.
-
-    Returns:
-    None
-    """
-
-    comp_code_list = [x.lower() for x in comp_code_list]
-
-    # Dictionary to hold data from CSV or fetched data
-    data = {}
+# Get list of competitions from user
+if __name__ == "__main__":
+    plot = True
+    show_work = True
+    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc", "idg"]
     csv_file_path = "numCompetitorsPastComps.csv"
 
-    # Read existing data from CSV if it exists
-    if os.path.exists(csv_file_path):
-        with open(csv_file_path, mode="r") as file:
-            reader = csv.reader(file)
-            headers = next(reader)  # First row is headers
-            for row in reader:
-                competition = row[0]
-                if competition in comp_code_list:
-                    values = {
-                        int(year): (int(count) if count else None)
-                        for year, count in zip(headers[1:], row[1:])
-                    }
-                    data[competition] = values
 
-    start_year = float("inf")
-    end_year = 0
+# If a CSV doesn't exist, create it
+def create_or_verify_csv(csv_file_path, index):
+    if not os.path.exists(csv_file_path):
+        with open(csv_file_path, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([index])
 
-    if show_work:
-        print()
 
+# Load the CSV file into a DataFrame
+def load_csv(csv_file_path):
+    index = "Year"
+    create_or_verify_csv(csv_file_path, index)
+    df = pd.read_csv(csv_file_path, index_col=index)
+    df.index.name = index
+    return df
+
+
+# Check the competitions in the CSV file against the competitions in the list
+def update_df_with_comp_list(df, comp_code_list, show_work=True):
+    comp_code_list = [x.lower() for x in comp_code_list]
     for comp_code in comp_code_list:
-        most_recent_year_website = get_most_recent_comp_year(comp_code)
+        # Set to 0 if the competition is not in the CSV file
+        most_recent_year_csv = 0
 
-        if comp_code in data:
-            most_recent_year_csv = max(data[comp_code].keys())
-            if most_recent_year_website > most_recent_year_csv:
-                # Fetch data from the website for the missing years
-                new_data = count_competitors_past_comps(
-                    comp_code, show_work, earliest_year=most_recent_year_csv + 1
-                )
-                data[comp_code].update(new_data)
-        else:
-            # Fetch all available data for this competition
-            data[comp_code] = count_competitors_past_comps(comp_code, show_work)
+        # If the competition is in the CSV file, check the last in the CSV file against the last year on the website
+        if comp_code in df.columns.to_list():
+            most_recent_year_csv = max(df[comp_code].dropna().keys())
+            most_recent_year_website = get_most_recent_comp_year(comp_code)
 
-        # Update start and end years
-        returned_years = list(data[comp_code].keys())
-        if returned_years:
-            start_year = min(min(returned_years), start_year)
-            end_year = max(max(returned_years), end_year)
+            # If the years are the same, skip this competition
+            if most_recent_year_csv == most_recent_year_website:
+                continue
 
+        df_to_add = count_competitors_past_comps(
+            comp_code,
+            show_work,
+            earliest_year=most_recent_year_csv + 1,
+            index=df.index.name,
+        )
+        df = df.combine_first(df_to_add)
+
+    return df
+
+
+# Write updated data back to CSV
+def write_df_to_csv(df, csv_file_path, show_work=True):
+    df = df.astype("Int64")  # Convert all values to Int64
     if show_work:
-        print()
+        print("\nData to be written to CSV:\n")
+        print(df)
+    df.to_csv(csv_file_path)
 
-    # Write updated data back to CSV
-    years = list(range(start_year, end_year + 1))
-    with open(csv_file_path, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Competition"] + years)
-        for competition, values in data.items():
-            row = [competition] + [values.get(year, "") for year in years]
-            writer.writerow(row)
 
+# Plot the data
+def plot_data(df):
+    plt.figure(figsize=(10, 5))
+
+    for column in df.columns:
+        # Drop NaN values from the column before plotting so there aren't breaks in the line
+        non_na_df = df[column].dropna()
+        plt.plot(non_na_df.index, non_na_df, label=column, marker="o")
+
+    plt.title("Number of Competitors Over Years")
+    plt.xlabel("Year")
+    plt.gca().xaxis.set_major_locator(ticker.MultipleLocator(1))
+
+    plt.ylabel("Number of Competitors")
+    plt.ylim(bottom=0)
+
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+if __name__ == "__main__":
+    df = load_csv(csv_file_path)
+    df = update_df_with_comp_list(df, comp_code_list, show_work)
+    write_df_to_csv(df, csv_file_path)
     if plot:
-        plt.figure(figsize=(10, 5))
-
-        # Plot each competition's line
-        for competition, values in data.items():
-            # Separate the years and number of competitors, skipping missing data
-            valid_years = [year for year, num in values.items() if num]
-            valid_competitors = [num for num in values.values() if num]
-
-            plt.plot(valid_years, valid_competitors, label=competition, marker=".")
-
-        # Add title and labels
-        plt.title("Number of Competitors Over Years")
-        plt.xlabel("Year")
-        plt.xticks(list(range(start_year, end_year + 1)))
-        plt.ylabel("Value")
-        plt.ylim(bottom=0)
-
-        # Add a legend and gridlines
-        plt.legend()
-        plt.grid()
-
-        # Show the plot
-        plt.show()
-    return
-
-
-plot_past_comps(comp_code_list, plot=plot)
+        plot_data(df)

@@ -8,7 +8,7 @@ from utils import remove_TBAs_and_dups
 ## Manual Enter
 manual = 1
 if manual:
-    comp_code = "bds"
+    comp_code = "big"
     first_name = ""
     last_name = ""
 

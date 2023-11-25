@@ -57,17 +57,6 @@ def count_competitors_in_comp(url):
         competitor_name_elements_with_TBAs_and_dups
     )
 
-    # removed because it's no longer needed here
-    """if "results" in url:
-        header = soup.find("td", class_="h4")
-        year = header.text.split(" ")[-1]
-        output = {
-            "num_competitors": len(competitor_name_elements),
-            "year": int(year),
-            "comp_code": get_comp_code_from_url(url),
-        }
-    else:"""
-
     output = {
         "num_competitors": len(competitor_name_elements),
         "comp_code": get_comp_code_from_url(url),
@@ -116,6 +105,10 @@ def get_comp_year_from_url(url):
     return int(year)
 
 
+# Global variable to store the cached soup object
+cached_soup = None
+
+
 def get_most_recent_comp_year(comp_code):
     """
     Returns the most recent year of a competition with the given competition code.
@@ -126,11 +119,14 @@ def get_most_recent_comp_year(comp_code):
     Returns:
     int: The most recent year of the competition.
     """
-    # Go to the events website
-    response = requests.get("https://results.o2cm.com/")
-    soup = BeautifulSoup(response.text, "html.parser")
+    global cached_soup
 
-    for link in soup.find_all("a"):
+    # Fetch the soup object if it is not already cached
+    if cached_soup is None:
+        response = requests.get("https://results.o2cm.com/")
+        cached_soup = BeautifulSoup(response.text, "html.parser")
+
+    for link in cached_soup.find_all("a"):
         link_url = "https://results.o2cm.com/" + link.get("href")
         if get_comp_code_from_url(link_url) == comp_code:
             most_recent_year = get_comp_year_from_url(link_url)
