@@ -5,10 +5,8 @@ from dancerClass import Dancer
 from time import time
 from utils import remove_TBAs_and_dups
 
-## Manual Enter
-manual = 1
-if manual:
-    comp_code = "big"
+if __name__ == "__main__":
+    comp_code = "comp_code"
     first_name = ""
     last_name = ""
 
@@ -125,7 +123,6 @@ def compChecker(
             for dance in event.dances:
                 points = dancer.get_points(event.style, event.level, dance)
                 if (points >= 7) and (event.level != "champ"):
-
                     ##ADD KEEPING TRACK HERE##
 
                     # prob replace this with len(list)
@@ -157,4 +154,5 @@ def compChecker(
     return
 
 
-compChecker(comp_code, first_name=first_name, last_name=last_name)
+if __name__ == "__main__":
+    compChecker(comp_code, first_name=first_name, last_name=last_name)

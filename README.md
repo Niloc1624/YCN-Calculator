@@ -10,7 +10,7 @@ If you want to use this to check a given comp for dancers who have placed out of
 - Set manual=1 in compChecker.py, put the entries website code (should be 3 letters) in comp_code, and run compChecker.py on your local machine. Outputs will be printed to terminal.  Make sure in webScaper.py, manual=0. Not sure why exactly but for some reason compChecker.py really screws up if manual=1 in webscraper.py.
 
 If you want to plot how many competitors there have been for a given competition over the years available on https://results.o2cm.com/ (not including entrants starting with "TBA" (case-sensitive) and not including duplicates):
-- Run plotCompetitorsPastComps.py on your local machine. Outputs will be displayed using matplotlib.
+- Run plotCompetitorsPastComps.py on your local machine. Outputs will be displayed using matplotlib. Has a parameter for only counting competitors with at least one event, but that makes it take much longer.
 
 If you want to check how many competitors there are for every competition available on https://events.o2cm.com/ (not including entrants starting with "TBA" (case-sensitive) and not including duplicates):
 - Run countCompetitorsUpcomingComps.py on your local machine. Outputs will be printed to terminal.

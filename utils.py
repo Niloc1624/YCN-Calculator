@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 
 def which_ele_is_in_str(list, string):
     """
-    Returns the first element from list that is in string.
+    Returns the first element from a list of elements that is in a string.
     """
     return next((x for x in list if x in string), None)
 
@@ -25,23 +25,36 @@ def remove_TBAs_and_dups(competitor_name_elements_with_TBAs_and_dups):
     competitor_names = []
     competitor_name_elements = []
     for ele in competitor_name_elements_with_TBAs_and_dups:
-        if ele.text[:3] != "TBA" and ele.text not in competitor_names:
+        text = ele.text
+        if text[:3] != "TBA" and text not in competitor_names:
             competitor_name_elements.append(ele)
-            competitor_names.append(ele.text)
+            competitor_names.append(text)
     return competitor_name_elements
 
 
-def count_competitors_in_comp(url):
+class NoDropdown(Exception):
+    """
+    Exception for when a dropdown menu with competitor names is not available.
+    """
+
+    pass
+
+
+def count_competitors_in_comp(url, verify_entries=False, show_work=False):
     """
     Returns a dictionary containing the number of competitors in a given URL element, the year of the competition,
     and the URL itself.
 
     url (str): The URL of the competition to count competitors for.
+    verify_entries (bool): Whether or not to verify entrants actually are registered for at least one event. Default is False.
 
     Returns:
     A dictionary containing num_competitors and comp_code. It also returns year if the URL is a results URL.
     Returns None if there is no dropdown on the page (probably because there is an error).
     """
+
+    comp_code = get_comp_code_from_url(url)
+
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     dropdown = soup.find("select", attrs={"id": "selEnt"})
@@ -50,16 +63,60 @@ def count_competitors_in_comp(url):
     try:
         competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
     except:
-        return None
+        raise NoDropdown()
 
     # Remove dancers who start with "TBA" (case-sensitive) or are duplicates
     competitor_name_elements = remove_TBAs_and_dups(
         competitor_name_elements_with_TBAs_and_dups
     )
+    num_competitors = len(competitor_name_elements)
+
+    num_verified_competitors = f"verify_entries set to {verify_entries}"
+    if verify_entries:
+        payload = {
+            "selDiv": "",
+            "selAge": "",
+            "selSkl": "",
+            "selSty": "",
+            "submit": "OK",
+            "selEnt": "",
+        }
+
+        # Go to the website
+        response2 = requests.post(url, data=payload)
+        soup2 = BeautifulSoup(response2.text, "html.parser")
+
+        verified_competitor_name_elements = []
+        td_elements = soup2.find_all("td")
+        # Only keep the td class elements with "&" in them, since those are the couples, also extract text
+        td_elements_text = [
+            element.text for element in td_elements if "&" in element.text
+        ]
+
+        for element in competitor_name_elements:
+            # Converst "last_name, first_name" to "first_name last_name"
+            last_first = element.text
+            first_name = last_first.rsplit(", ", 1)[1]
+            last_name = last_first.rsplit(", ", 1)[0]
+            full_name = first_name + " " + last_name
+
+            if any(full_name in text for text in td_elements_text):
+                verified_competitor_name_elements.append(element)
+        num_verified_competitors = len(verified_competitor_name_elements)
+
+        if show_work:
+            try:
+                comp_year = get_comp_year_from_url(url)
+            except:
+                comp_year = "coming up"
+            print(
+                f"At {comp_code} {comp_year}, {num_verified_competitors}/{num_competitors} competitors had at least one event."
+            )
 
     output = {
-        "num_competitors": len(competitor_name_elements),
-        "comp_code": get_comp_code_from_url(url),
+        "num_competitors": num_competitors,
+        "num_verified_competitors": num_verified_competitors,
+        "comp_code": comp_code,
     }
     return output
 

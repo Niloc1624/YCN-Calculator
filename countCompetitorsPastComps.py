@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
 
 def count_competitors_past_comps(
-    comp_code, show_work=False, earliest_year=0, index=None
+    comp_code, show_work=False, earliest_year=0, index=None, verify_entries=False
 ):
     """
     Returns a pandas DataFrame with the number of competitors in each past competition with the given competition code.
@@ -41,10 +41,16 @@ def count_competitors_past_comps(
             year = get_comp_year_from_url(link_url)
             if year < earliest_year:
                 break
-            yearly_num_competitors_dict = count_competitors_in_comp(link_url)
+            yearly_num_competitors_dict = count_competitors_in_comp(
+                link_url, verify_entries, show_work
+            )
+            if verify_entries:
+                num_competitors_key = "num_verified_competitors"
+            else:
+                num_competitors_key = "num_competitors"
             if yearly_num_competitors_dict is not None:
                 num_competitors_df.loc[year] = yearly_num_competitors_dict[
-                    "num_competitors"
+                    num_competitors_key
                 ]
 
     if show_work:

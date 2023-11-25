@@ -5,9 +5,7 @@ import pandas as pd
 from resultClass import Result
 from datetime import date
 
-## Manual Enter
-manual = 0
-if manual:
+if __name__ == "__main__":
     first_names = "first_names"
     last_names = "last_names"
 
@@ -413,7 +411,7 @@ def webScraper(
 
 
 # For testing
-if manual:
+if __name__ == "__main__":
     output = webScraper(first_names, last_names)
 
     for line in output:
