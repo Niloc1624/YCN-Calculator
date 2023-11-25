@@ -10,7 +10,7 @@ from countCompetitorsPastComps import count_competitors_past_comps
 if __name__ == "__main__":
     plot = True
     show_work = True
-    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "ndc", "idg"]
+    comp_code_list = ["mit", "big", "inf", "bds", "pbc", "idi", "idg", "upc", "occ", "usa"]
     csv_file_path = "numCompetitorsPastComps.csv"
 
 
@@ -68,13 +68,13 @@ def write_df_to_csv(df, csv_file_path, show_work=True):
 
 
 # Plot the data
-def plot_data(df):
+def plot_data(df, comp_code_list):
     plt.figure(figsize=(10, 5))
 
-    for column in df.columns:
+    for comp_code in comp_code_list:
         # Drop NaN values from the column before plotting so there aren't breaks in the line
-        non_na_df = df[column].dropna()
-        plt.plot(non_na_df.index, non_na_df, label=column, marker="o")
+        non_na_df = df[comp_code].dropna()
+        plt.plot(non_na_df.index, non_na_df, label=comp_code, marker="o")
 
     plt.title("Number of Competitors Over Years")
     plt.xlabel("Year")
@@ -93,4 +93,4 @@ if __name__ == "__main__":
     df = update_df_with_comp_list(df, comp_code_list, show_work)
     write_df_to_csv(df, csv_file_path)
     if plot:
-        plot_data(df)
+        plot_data(df, comp_code_list)
