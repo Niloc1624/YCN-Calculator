@@ -12,7 +12,21 @@ if __name__ == "__main__":
     plot = True
     show_work = True
     verify_entries = True
-    comp_code_list = ["idi", "bds", "idg", "ndc"]
+    comp_code_list = [
+        "idi",
+        "bds",
+        "idg",
+        "ndc",
+        "mit",
+        "inf",
+        "big",
+        "pbc",
+        "tub",
+        "upc",
+        "vub",
+        "occ",
+        "usa"
+    ]
 
     if verify_entries:
         csv_file_path = "numCompetitorsPastCompsVerified.csv"
@@ -82,7 +96,18 @@ def update_df_with_comp_list(df, comp_code_list, verify_entries=False, show_work
 
             # If the years are the same, skip this competition
             if most_recent_year_csv == most_recent_year_website:
+                if show_work:
+                    print(
+                        f"{comp_code} {most_recent_year_csv} is most recent in CSV and on website, continuing to next comp_code"
+                    )
                 continue
+
+            if show_work:
+                print(
+                    f"{comp_code} is missing {most_recent_year_csv+1} - {most_recent_year_website}, fetching and adding to CSV"
+                )
+        elif show_work:
+            print(f"{comp_code} is not in CSV, fetching and adding to CSV")
 
         df_to_add = count_competitors_past_comps(
             comp_code,

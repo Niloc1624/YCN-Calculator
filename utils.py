@@ -109,8 +109,11 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
                 comp_year = get_comp_year_from_url(url)
             except:
                 comp_year = "coming up"
+            percent_with_events = round(
+                100 * num_verified_competitors / num_competitors
+            )
             print(
-                f"At {comp_code} {comp_year}, {num_verified_competitors}/{num_competitors} competitors had at least one event."
+                f"At {comp_code} {comp_year}, {num_verified_competitors}/{num_competitors} ({percent_with_events}%) competitors had at least one event."
             )
 
     output = {

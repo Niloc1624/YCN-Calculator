@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from utils import count_competitors_in_comp, NoDropdown
 
 if __name__ == "__main__":
-    verify_entries = True
+    verify_entries = False
 
 
 def count_competitors_upcoming_comps(verify_entries=False):

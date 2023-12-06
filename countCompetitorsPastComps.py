@@ -8,13 +8,17 @@ from utils import (
 )
 
 if __name__ == "__main__":
-    show_work = True
-    earliest_year = 0
-    comp_code = "mit"
+    kwargs = {
+        "comp_code": "mit",
+        "show_work": True,
+        "earliest_year": 2016,
+        "index": None,
+        "verify_entries": True,
+    }
 
 
 def count_competitors_past_comps(
-    comp_code, show_work=False, earliest_year=0, index=None, verify_entries=False
+    comp_code=None, show_work=False, earliest_year=0, index=None, verify_entries=False
 ):
     """
     Returns a pandas DataFrame with the number of competitors in each past competition with the given competition code.
@@ -22,7 +26,9 @@ def count_competitors_past_comps(
     Parameters:
     comp_code (str): The competition code to search for.
     show_work (bool): Whether to print progress information to the console. Default is True.
+    index (str): The name of the index column for the DataFrame. Default is None.
     earliest_year (int): The earliest year to get data for. Default is 0.
+    verify_entries (bool): Whether to only count competitors with at least one event at the competition. Default is False.
 
     Returns:
     pandas.DataFrame: A DataFrame with the year as the index and the number of competitors as the column "num_competitors".
@@ -55,7 +61,7 @@ def count_competitors_past_comps(
 
     if show_work:
         print(
-            f'\nCompetitions with comp_code "{comp_code}" after the earliest_year {earliest_year} were found with data:\n'
+            f'\nCompetitions with comp_code "{comp_code}" after the earliest_year {earliest_year} were found with data:'
         )
         print(num_competitors_df)
 
@@ -63,4 +69,4 @@ def count_competitors_past_comps(
 
 
 if __name__ == "__main__":
-    count_competitors_past_comps(comp_code, show_work, earliest_year)
+    count_competitors_past_comps(**kwargs)
