@@ -8,10 +8,16 @@ if __name__ == "__main__":
     comp_code = "ndc"
     first_name = ""
     last_name = ""
+    format_for_spreadsheet = True
 
 
 def compChecker(
-    comp_code, show_work=1, debug_reject_headers=1, first_name="", last_name=""
+    comp_code,
+    show_work=1,
+    debug_reject_headers=1,
+    first_name="",
+    last_name="",
+    format_for_spreadsheet=False,
 ):
     """
     Checks a competition for any dancers who are registered for an event they've placed out of.
@@ -22,6 +28,7 @@ def compChecker(
     debug_reject_headers: 1 for printing out things that could not be evaluated
     first_name / last_name: Strings. If they both have values, the program
                             will check that one dancer for the given competition
+    format_for_spreadsheet: True for formatting the output for a spreadsheet with | delimiters
     """
     # Start timer
     start_time = time()
@@ -47,7 +54,7 @@ def compChecker(
 
     if first_name and last_name:
         competitor_name_elements_with_TBAs_and_dups = dropdown.find_all(
-            "option", text=last_name + ", " + first_name
+            "option", string=last_name + ", " + first_name
         )
     else:
         competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
@@ -78,7 +85,7 @@ def compChecker(
         elif element.get("class") == ["h5n"]:
             if first_name and last_name:
                 dancer_elements = element.find_all(
-                    "a", text=first_name + " " + last_name
+                    "a", string=first_name + " " + last_name
                 )
             else:
                 dancer_elements = element.find_all("a")
@@ -112,6 +119,10 @@ def compChecker(
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
     num_dancers_with_events = 0
+    if format_for_spreadsheet:
+        print(
+            "Dancer|Level|Style|Event|Ineligible Dance|Points in Ineligible Dance|Exceptions"
+        )
     for information in dancers_and_events_dict.keys():
         events = dancers_and_events_dict[information]["events"]
         dancer = dancers_and_events_dict[information]["dancer_obj"]
@@ -127,9 +138,14 @@ def compChecker(
                     # prob replace this with len(list)
                     dancer_placed_out = 1
                     if show_work:
-                        print(
-                            f"{dancer} is registered for {event}, but has {points} points in {dance}."
-                        )
+                        if format_for_spreadsheet:
+                            print(
+                                f"{dancer}|{event.level}|{event.style}|{event.dances_string}|{dance}|{points}"
+                            )
+                        else:
+                            print(
+                                f"{dancer} is registered for {event}, but has {points} points in {dance}."
+                            )
         num_found += dancer_placed_out
         num_dancers_with_events += dancer_has_events
 
@@ -154,4 +170,9 @@ def compChecker(
 
 
 if __name__ == "__main__":
-    compChecker(comp_code, first_name=first_name, last_name=last_name)
+    compChecker(
+        comp_code,
+        first_name=first_name,
+        last_name=last_name,
+        format_for_spreadsheet=format_for_spreadsheet,
+    )
