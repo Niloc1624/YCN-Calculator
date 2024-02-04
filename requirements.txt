@@ -1,7 +1,7 @@
 beautifulsoup4
 Flask
 pandas
-requests
+httpx
 gunicorn
 google-api-python-client
 google-auth-httplib2

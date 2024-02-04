@@ -1,8 +1,7 @@
-import requests
 from bs4 import BeautifulSoup
-from datetime import date
 from eventClass import Event
-from utils import which_ele_is_in_str, lists_both_have_ele_in_str
+from utils import which_ele_is_in_str, lists_both_have_ele_in_str, get_result_from_link
+
 
 class Result(Event):
     """
@@ -15,7 +14,7 @@ class Result(Event):
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
     self.date           : date of the event stored with date object
-    
+
     from Event class:
     self.raw_text       : raw text from the individual results.o2cm.com page for that event
     self.level          : what level the event was
@@ -24,7 +23,15 @@ class Result(Event):
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     """
 
-    def __init__(self, result, first_name, last_name, date, debug_reject_headers=0):
+    def __init__(
+        self,
+        result,
+        first_name,
+        last_name,
+        date,
+        o2cm_results_cache_dict,
+        debug_reject_headers=0,
+    ):
         """
         Initialize the Result class.
 
@@ -32,15 +39,18 @@ class Result(Event):
             result : html element object from beautiful soup
             first_name : dancer's first name
             last_name : dancer's last name
-            date : date of the event stored with date object 
+            date : date of the event stored with date object
             debug_reject_headers : 1 to print dances (headers) that the program doesn't know what to do with
         """
         self.first_name = first_name
         self.last_name = last_name
         self.dancer_name = first_name + " " + last_name
         self.date = date
+        self.o2cm_results_cache_dict = o2cm_results_cache_dict
         self.debug_reject_headers = debug_reject_headers
         self.link = result.get("href")
+        if self.link.startswith("http:"):
+            self.link = "https:" + self.link[5:]
         super().__init__(result, debug_reject_headers)
         self.placement = int(self.raw_text.split(")")[0])
         self.dances_string = ", ".join(self.dances)
@@ -76,8 +86,10 @@ class Result(Event):
         ]
 
         # Click in to the event
-        response = requests.get(self.link)
-        soup = BeautifulSoup(response.text, "html.parser")
+        response_text, self.o2cm_results_cache_dict = get_result_from_link(
+            self.link, self.o2cm_results_cache_dict
+        )
+        soup = BeautifulSoup(response_text, "html.parser")
 
         # Make sure dancer actually made the final (may not be the case if <6 couples in final)
         if self.dancer_name.casefold() not in soup.get_text().casefold():

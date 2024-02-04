@@ -1,4 +1,4 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
 from eventClass import Event
 from dancerClass import Dancer
@@ -6,7 +6,7 @@ from time import time
 from utils import remove_TBAs_and_dups
 
 if __name__ == "__main__":
-    comp_code = "comp_code"
+    comp_code = "ndc"
     first_name = ""
     last_name = ""
 
@@ -40,7 +40,7 @@ def compChecker(
     }
 
     # Go to the website
-    response = requests.post("https://entries.o2cm.com/default.asp", data=payload)
+    response = httpx.post("https://entries.o2cm.com/default.asp", data=payload)
     soup = BeautifulSoup(response.text, "html.parser")
 
     # Find everyone who is regsitered at the competition

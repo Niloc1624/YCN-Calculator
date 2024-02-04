@@ -1,13 +1,15 @@
 import re
-import requests
+import httpx
 from bs4 import BeautifulSoup
 import pandas as pd
 from resultClass import Result
 from datetime import date
+import json
+from utils import get_result_from_link
 
 if __name__ == "__main__":
-    first_names = "first_names"
-    last_names = "last_names"
+    first_names = "first_name"
+    last_names = "last_name"
 
 
 def webScraper(
@@ -230,12 +232,20 @@ def webScraper(
     last_names = last_names.replace(", ", ",")
     last_names = last_names.split(",")
 
+    # Load json cache of visited links
+    o2cm_results_cache_json = "o2cm_results_pages.json"
+    try:
+        with open(o2cm_results_cache_json, "r") as f:
+            o2cm_results_cache_dict = json.load(f)
+    except FileNotFoundError:
+        o2cm_results_cache_dict = {}
+
     top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
         if show_work:
             print("\n", f"Calculating points for {first_name} {last_name}.", "\n")
-        response = requests.get(
+        response = httpx.get(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
         soup = BeautifulSoup(response.text, "html.parser")
@@ -245,7 +255,7 @@ def webScraper(
         # the date *should* be assigned before any link is, but I don't trust O2CM
         # or my own code, for that matter
         # so it's getting initialized here too to be safe
-        date_str = soup.find(text=date_pattern)
+        date_str = soup.find(string=date_pattern)
         if date_str:
             date_str = date_str.text[:8]
 
@@ -266,15 +276,18 @@ def webScraper(
                         int(date_str[:2]),
                         int(date_str[3:5]),
                     )
-                    top6_results_links.append(
-                        Result(
-                            item,
-                            first_name,
-                            last_name,
-                            date_object,
-                            debug_reject_headers,
-                        )
+                    
+                    top6_result = Result(
+                        item,
+                        first_name,
+                        last_name,
+                        date_object,
+                        o2cm_results_cache_dict,
+                        debug_reject_headers,
                     )
+                    top6_results_links.append(top6_result)
+                    o2cm_results_cache_dict = top6_result.o2cm_results_cache_dict
+
             else:
                 match = re.search(date_pattern, elem_text)
                 if match:
@@ -283,8 +296,10 @@ def webScraper(
     # Check rounds
     for result in top6_results_links:
         # Open results page
-        response = requests.get(result.link)
-        soup = BeautifulSoup(response.text, "html.parser")
+        response_text, o2cm_results_cache_dict = get_result_from_link(
+            result.link, o2cm_results_cache_dict
+        )
+        soup = BeautifulSoup(response_text, "html.parser")
 
         # Count number of rounds in event
         select_element = soup.select_one("select")
@@ -314,6 +329,10 @@ def webScraper(
                         points_added = True
             if show_work and points_added:
                 print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
+
+    # Save the visited links back to the json
+    with open(o2cm_results_cache_json, "w") as f:
+        json.dump(o2cm_results_cache_dict, f, indent=2)
 
     # Calculate the double points for level below and +7 for 2+ levels below rules
     for d in [smooth_data, standard_data, rhythm_data, latin_data]:

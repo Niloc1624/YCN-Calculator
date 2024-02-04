@@ -1,4 +1,4 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
 from utils import count_competitors_in_comp, NoDropdown
 
@@ -16,7 +16,7 @@ def count_competitors_upcoming_comps(verify_entries=False):
                                False: show all competitors registered for the competition
     """
     # Go to the events website
-    response = requests.get("https://events.o2cm.com/")
+    response = httpx.get("https://events.o2cm.com/")
     soup = BeautifulSoup(response.text, "html.parser")
 
     print()
