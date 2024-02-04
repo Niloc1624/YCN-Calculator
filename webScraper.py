@@ -1,15 +1,14 @@
 import re
-import httpx
 from bs4 import BeautifulSoup
 import pandas as pd
 from resultClass import Result
 from datetime import date
 import json
-from utils import get_result_from_link
+from utils import get_result_from_link, httpx_client
 
 if __name__ == "__main__":
-    first_names = "first_name"
-    last_names = "last_name"
+    first_names = "Colin"
+    last_names = "Richter"
 
 
 def webScraper(
@@ -245,7 +244,8 @@ def webScraper(
     for first_name, last_name in zip(first_names, last_names):
         if show_work:
             print("\n", f"Calculating points for {first_name} {last_name}.", "\n")
-        response = httpx.get(
+
+        response = httpx_client().get(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
         )
         soup = BeautifulSoup(response.text, "html.parser")
@@ -276,7 +276,7 @@ def webScraper(
                         int(date_str[:2]),
                         int(date_str[3:5]),
                     )
-                    
+
                     top6_result = Result(
                         item,
                         first_name,

@@ -1,6 +1,5 @@
-import httpx
 from bs4 import BeautifulSoup
-from utils import count_competitors_in_comp, NoDropdown
+from utils import count_competitors_in_comp, NoDropdown, httpx_client
 
 if __name__ == "__main__":
     verify_entries = False
@@ -16,7 +15,7 @@ def count_competitors_upcoming_comps(verify_entries=False):
                                False: show all competitors registered for the competition
     """
     # Go to the events website
-    response = httpx.get("https://events.o2cm.com/")
+    response = httpx_client().get("https://events.o2cm.com/")
     soup = BeautifulSoup(response.text, "html.parser")
 
     print()

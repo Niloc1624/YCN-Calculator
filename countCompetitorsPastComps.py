@@ -1,10 +1,10 @@
-import httpx
 import pandas as pd
 from bs4 import BeautifulSoup
 from utils import (
     count_competitors_in_comp,
     get_comp_code_from_url,
     get_comp_year_from_url,
+    httpx_client,
 )
 
 if __name__ == "__main__":
@@ -37,7 +37,7 @@ def count_competitors_past_comps(
     num_competitors_df.index.name = index
 
     # Go to the events website
-    response = httpx.get("https://results.o2cm.com/")
+    response = httpx_client().get("https://results.o2cm.com/")
     soup = BeautifulSoup(response.text, "html.parser")
 
     for link in soup.find_all("a"):

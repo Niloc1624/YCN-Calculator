@@ -55,7 +55,7 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
 
     comp_code = get_comp_code_from_url(url)
 
-    response = httpx.get(url)
+    response = httpx_client().get(url)
     soup = BeautifulSoup(response.text, "html.parser")
     dropdown = soup.find("select", attrs={"id": "selEnt"})
 
@@ -83,7 +83,7 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
         }
 
         # Go to the website
-        response2 = httpx.post(url, data=payload)
+        response2 = httpx_client().post(url, data=payload)
         soup2 = BeautifulSoup(response2.text, "html.parser")
 
         verified_competitor_name_elements = []
@@ -183,7 +183,7 @@ def get_most_recent_comp_year(comp_code):
 
     # Fetch the soup object if it is not already cached
     if cached_soup is None:
-        response = httpx.get("https://results.o2cm.com/")
+        response = httpx_client().get("https://results.o2cm.com/")
         cached_soup = BeautifulSoup(response.text, "html.parser")
 
     for link in cached_soup.find_all("a"):
@@ -194,7 +194,9 @@ def get_most_recent_comp_year(comp_code):
     return most_recent_year
 
 
-def get_result_from_link(link, o2cm_results_cache_dict, max_links=10000, show_work=True):
+def get_result_from_link(
+    link, o2cm_results_cache_dict, max_links=10000, show_work=True
+):
     """
     Retrieve the result response_text from a given link. If the link has been visited before,
     the response_text is retrieved from the cache. Otherwise, the response_text is retrieved
@@ -209,7 +211,7 @@ def get_result_from_link(link, o2cm_results_cache_dict, max_links=10000, show_wo
         tuple: A tuple containing the retrieved data and the updated cache dictionary.
     """
     if link not in o2cm_results_cache_dict:
-        response_text = httpx.get(link).text
+        response_text = httpx_client().get(link).text
         o2cm_results_cache_dict[link] = response_text
     else:
         response_text = o2cm_results_cache_dict[link]
@@ -223,3 +225,18 @@ def get_result_from_link(link, o2cm_results_cache_dict, max_links=10000, show_wo
             print(f"Removing oldest link: {oldest_link}")
 
     return response_text, o2cm_results_cache_dict
+
+
+def httpx_client(timeout=20):
+    """
+    Create an HTTP client with the specified timeout.
+
+    Args:
+        timeout (int): The timeout value in seconds. Default is 20.
+
+    Returns:
+        httpx.Client: An instance of the HTTP client.
+
+    """
+    client = httpx.Client(timeout=timeout)
+    return client
