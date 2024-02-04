@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # EDIT THESE VARIABLES
     plot = True
     show_work = True
-    verify_entries = True
+    verify_entries = False
     comp_code_list = [
         "idi",
         "bds",
@@ -146,6 +146,8 @@ def plot_data(df, comp_code_list, verified_entries=False):
     Parameters:
     df (pandas.DataFrame): The DataFrame containing the data.
     comp_code_list (list): The list of competition codes.
+    verify_entries (bool, optional): WARNING: TAKES A LONG TIME. Whether to only count the number of
+                                    competitors with at least one event. Defaults to False.
 
     Returns:
     None
