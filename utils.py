@@ -227,7 +227,7 @@ def get_result_from_link(
     return response_text, o2cm_results_cache_dict
 
 
-def httpx_client(timeout=60):
+def httpx_client(timeout=120):
     """
     Create an HTTP client with the specified timeout.
 

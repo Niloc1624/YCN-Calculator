@@ -11,21 +11,19 @@ if __name__ == "__main__":
     # EDIT THESE VARIABLES
     plot = True
     show_work = True
-    verify_entries = False
+    verify_entries = True
     comp_code_list = [
-        "idi",
-        "bds",
-        "idg",
-        "ndc",
+        "usa",
         "mit",
-        "inf",
         "big",
-        "pbc",
-        "tub",
-        "upc",
-        "vub",
+        "inf",
         "occ",
-        "usa"
+        "pbc",
+        "idg",
+        "bds",
+        "idi",
+        "vub",
+        "ndc",
     ]
 
     if verify_entries:
@@ -68,7 +66,9 @@ def load_csv(csv_file_path):
 
 
 # Check the competitions in the CSV file against the competitions in the list
-def update_df_with_comp_list(df, comp_code_list, verify_entries=False, show_work=True):
+def update_df_with_comp_list(
+    df, comp_code_list, csv_file_path=None, verify_entries=False, show_work=True
+):
     """
     Updates the given DataFrame with competitor information for each competition code in the comp_code_list.
     Checks CSV file first and only updates if the competition is not already in the CSV file or if the last year
@@ -77,6 +77,7 @@ def update_df_with_comp_list(df, comp_code_list, verify_entries=False, show_work
     Args:
         df (pandas.DataFrame): The DataFrame to be updated.
         comp_code_list (list): A list of competition codes to check.
+        csv_file_path (str): The file path of the CSV file.
         verify_entries (bool, optional): WARNING: TAKES A LONG TIME. Whether to only count the number of
                                          competitors with at least one event. Defaults to False.
         show_work (bool, optional): Whether to show the work. Defaults to True.
@@ -117,7 +118,8 @@ def update_df_with_comp_list(df, comp_code_list, verify_entries=False, show_work
             verify_entries=verify_entries,
         )
         df = df.combine_first(df_to_add)
-
+        if csv_file_path:
+            write_df_to_csv(df, csv_file_path)
     return df
 
 
@@ -133,9 +135,7 @@ def write_df_to_csv(df, csv_file_path, show_work=True):
     """
     df = df.astype("Int64")  # Convert all values to Int64
     df.to_csv(csv_file_path)
-    if show_work:
-        print("\nData written to CSV:\n")
-        print(df)
+    return
 
 
 # Plot the data
@@ -173,11 +173,18 @@ def plot_data(df, comp_code_list, verified_entries=False):
     plt.legend()
     plt.grid(True)
     plt.show()
+    return
 
 
 if __name__ == "__main__":
     df = load_csv(csv_file_path)
-    df = update_df_with_comp_list(df, comp_code_list, verify_entries, show_work)
-    write_df_to_csv(df, csv_file_path)
+    df = update_df_with_comp_list(
+        df, comp_code_list, csv_file_path, verify_entries, show_work
+    )
+
+    if show_work:
+        print("\nData written to CSV:\n")
+        print(df)
+
     if plot:
         plot_data(df, comp_code_list, verify_entries)
