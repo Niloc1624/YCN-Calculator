@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # EDIT THESE VARIABLES
     plot = True
     show_work = True
-    verify_entries = True
+    verify_entries = False
     comp_code_list = [
         "usa",
         "mit",
