@@ -49,7 +49,7 @@ class Dancer:
             self.first_name, self.last_name, True, show_work, debug_reject_headers
         )
         self.styles_data_dict = web_scraper_output[0]
-        self.results_nums_dict = web_scraper_output[1]
+        self.results_nums_dict = web_scraper_output[2]
 
     def get_points(self, style, level, dance):
         """

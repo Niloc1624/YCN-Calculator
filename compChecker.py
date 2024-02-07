@@ -5,7 +5,7 @@ from time import time
 from utils import remove_TBAs_and_dups, httpx_client
 
 if __name__ == "__main__":
-    comp_code = "rub"
+    comp_code = "ndc"
     first_name = ""
     last_name = ""
     format_for_spreadsheet = True
