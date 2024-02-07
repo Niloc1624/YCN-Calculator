@@ -114,7 +114,9 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
     Returns:
         None
     """
-    st.write("#### If there are any new results, please upload this new JSON file instead when running this in the future.")
+    st.write(
+        "#### If there are any new results, please upload this new JSON file when running this in the future."
+    )
 
     num_new_results = results_nums_dict["num_new_results"]
     num_total_results = results_nums_dict["num_total_results"]
@@ -146,22 +148,20 @@ def main():
 
     st.title("YCN Point Calculator")
 
-    requirements = """#### REQUIRED: Upload the JSON file from the last time you used this.
-                   If this is your first time or if you lost the file, Download the JSON file from
-                   the button below and upload it into the field below."""
-    st.write(requirements.replace("\n", ""))
+    recommendation = """#### RECOMMENDED: Upload the JSON file from the last time you used this.
+                   If this is your first time or if you lost the file, you can skip this step."""
+    st.write(recommendation.replace("\n", ""))
 
     json_url = "https://raw.githubusercontent.com/Niloc1624/YCN-Calculator/master/o2cm_results_cache.json"
 
-    o2cm_json = httpx_client().get(json_url).json()
-
-    st.download_button(
-        label="Download JSON",
-        data=json.dumps(o2cm_json, indent=2),
-        file_name="o2cm_results_cache.json",
-    )
+    o2cm_github_dict = httpx_client().get(json_url).json()
 
     o2cm_results_cache_dict = ask_for_json()
+    # Combine the uploaded JSON with the GitHub JSON
+    if o2cm_results_cache_dict is not None:
+        o2cm_results_cache_dict.update(o2cm_github_dict)
+    else:
+        o2cm_results_cache_dict = o2cm_github_dict
 
     with st.expander("Why?"):
         st.write(
@@ -175,39 +175,39 @@ def main():
                  Additionally, the the more resent searches will be moved to the top of the JSON file, so they will not
                  be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
         )
+        st.markdown("""By default, the JSON file from
+                    [here](https://github.com/Niloc1624/YCN-Calculator/blob/master/o2cm_results_cache.json)
+                    is used. If you upload a JSON file, the program will combine it with the default one
+                    above and use the combined JSON file.""")
 
-    if o2cm_results_cache_dict is not None:
-        st.write("Enter a first and last name (or lists of each)")
+    st.write("## Enter a first and last name (or lists of each)")
+    st.write(
+        """If the person you are searching for has multiple O2CM accounts, you can enter comma-delimited
+        lists of first names and last names. The calculator will add the results from these accounts together.
+        Make sure there are an equal number of first names and last names in each list.""",
+    )
+
+    # Display two input boxes side by side
+    col1, col2 = st.columns(2)
+    with col1:
+        first_names = st.text_input("First Name(s)")
+    with col2:
+        last_names = st.text_input("Last Name(s)")
+
+    simple = not st.checkbox("Detailed Tables")
+    if not simple:
         st.write(
-            """Bonus feature! If the person you are searching for has multiple O2CM accounts,
-            you can enter comma-delimited lists of first names and last names.
-            The calculator will add the results from these accounts together.
-            Make sure there are an equal number of first names and last names in each list.""",
+            """Detailed tables include two numbers in each box. The first number is what displays
+                in the simple table. That is the points a dancer has in that level. The second number is
+                the number of points earned by reaching finals in that level. It does not include points
+                from the "double points one level down and +7 points for 2+ levels down" rule."""
         )
 
-        # Display two input boxes side by side
-        col1, col2 = st.columns(2)
-        with col1:
-            first_names = st.text_input("First Name(s)")
-        with col2:
-            last_names = st.text_input("Last Name(s)")
-
-        simple = not st.checkbox("Detailed Tables")
-        if not simple:
-            st.write(
-                """Detailed tables include two numbers in each box. The first number is what displays
-                    in the simple table. That is the points a dancer has in that level. The second number is
-                    the number of points earned by reaching finals in that level. It does not include points
-                    from the "double points one level down and +7 points for 2+ levels down" rule."""
-            )
-
-        if st.button("Process Name(s)"):
-            output_tables, new_o2cm_results_cache_dict, results_nums_dict = (
-                process_names(first_names, last_names, simple, o2cm_results_cache_dict)
-            )
-            display_results(
-                output_tables, new_o2cm_results_cache_dict, results_nums_dict
-            )
+    if st.button("Process Name(s)"):
+        output_tables, new_o2cm_results_cache_dict, results_nums_dict = process_names(
+            first_names, last_names, simple, o2cm_results_cache_dict
+        )
+        display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dict)
 
     return
 
