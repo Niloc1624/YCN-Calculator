@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from eventClass import Event
-from utils import which_ele_is_in_str, lists_both_have_ele_in_str, get_result_from_link
+from utils import which_ele_is_in_str, get_result_from_link, streamlit_or_print
 
 
 class Result(Event):
@@ -21,6 +21,7 @@ class Result(Event):
     self.style          : what style the event was
     self.dances         : list of dances in the result
     self.debug_reject_headers: 1 to print out things we don't know what to do with
+    self.streamlit_mode : 1 to print to streamlit, 0 to print to console
     """
 
     def __init__(
@@ -86,23 +87,20 @@ class Result(Event):
         ]
 
         # Click in to the event
-        response_text, self.o2cm_results_cache_dict = get_result_from_link(
+        o2cm_result_info_dict, self.o2cm_results_cache_dict = get_result_from_link(
             self.link, self.o2cm_results_cache_dict
         )
-        soup = BeautifulSoup(response_text, "html.parser")
 
         # Make sure dancer actually made the final (may not be the case if <6 couples in final)
-        if self.dancer_name.casefold() not in soup.get_text().casefold():
+        if self.dancer_name.casefold() not in [
+            name.casefold() for name in o2cm_result_info_dict["dancer_names"]
+        ]:
             return [""]
-
-        # Pull all the table headers
-        headers = soup.select(".h3")
-        headers_text = [header.text.lower() for header in headers]
 
         # See which headers have names in the dance_list and which don't
         dances = []
         reject_dances = []
-        for header_text in headers_text:
+        for header_text in o2cm_result_info_dict["headers_text"]:
             dance = which_ele_is_in_str(dance_list, header_text)
             if dance:
                 dances.append(dance)
@@ -116,7 +114,9 @@ class Result(Event):
 
         # Print out any headers we haven't somehow haven't accounted for
         if reject_dances:
-            print(f"{result_text}: invalid dance(s) {reject_dances}")
+            streamlit_or_print(
+                f"{result_text}: invalid dance(s) {reject_dances}", self.streamlit_mode
+            )
 
         if dances:
             return dances

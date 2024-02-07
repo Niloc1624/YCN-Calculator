@@ -5,25 +5,38 @@ from resultClass import Result
 from datetime import date
 import json
 from utils import get_result_from_link, httpx_client
+import streamlit as st
 
 if __name__ == "__main__":
-    first_names = "Colin"
-    last_names = "Richter"
+    first_names = "Marie"
+    last_names = "Ghosn"
+    streamlit = False
 
 
 def webScraper(
-    first_names, last_names, results_only=0, show_work=1, debug_reject_headers=1
+    first_names,
+    last_names,
+    results_only=False,
+    show_work=True,
+    debug_reject_headers=True,
+    streamlit=False,
+    o2cm_results_cache_dict=None,
 ):
     """
     Scrapes https://results.o2cm.com/ given someone's name.
 
-    first_names : comma (or comma space(s))-delimited string of first names to check
-    last_names : comma (or comma space(s))-delimited string of last names to check
-    ^^Note that the length of the above two lists must be the same
+    Args:
+        first_names (str): Comma (or comma space(s))-delimited string of first names to check.
+        last_names (str): Comma (or comma space(s))-delimited string of last names to check.
+        results_only (bool, optional): Set to True if you want to calculate the results and not display them. Defaults to False.
+        show_work (bool, optional): True means print out points and names as they're being added. Defaults to True.
+        debug_reject_headers (bool, optional): True means print out any results that couldn't be added for some reason. Defaults to True.
+        streamlit (bool, optional): Set to True if using Streamlit framework. Defaults to False.
+        o2cm_results_cache_dict (dict, optional): dictionary of cache file of visited links. Defaults to None.
 
-    results_only : set to 1 if you want to calculate the results and not display them
-    show_work : 1 means print out points and names as they're being added
-    debug_reject_headers : 1 means print out any results that couldn't be added for some reason
+    Returns:
+        if results_only or streamlit is True: returns a dictionary of results
+        Otherwise, returns a string and dict output for website.py
     """
 
     ##Make blank tables - there's probably a way to automate this but...
@@ -232,17 +245,27 @@ def webScraper(
     last_names = last_names.split(",")
 
     # Load json cache of visited links
-    o2cm_results_cache_json = "o2cm_results_pages.json"
-    try:
-        with open(o2cm_results_cache_json, "r") as f:
-            o2cm_results_cache_dict = json.load(f)
-    except FileNotFoundError:
-        o2cm_results_cache_dict = {}
+    if o2cm_results_cache_dict:
+        local_json = False
+    else:
+        local_json = True
+        o2cm_results_cache_json = "o2cm_results_cache.json"
+        try:
+            with open(o2cm_results_cache_json, "r") as f:
+                o2cm_results_cache_dict = json.load(f)
+        except FileNotFoundError:
+            o2cm_results_cache_dict = {}
+            with open(o2cm_results_cache_json, "w") as f:
+                json.dump(o2cm_results_cache_dict, f)
 
     top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
-        if show_work:
+        if streamlit:
+            dancer_expander = st.expander(
+                f"Raw points for {first_name} {last_name}.", expanded=False
+            )
+        elif show_work:
             print("\n", f"Calculating points for {first_name} {last_name}.", "\n")
 
         response = httpx_client().get(
@@ -296,17 +319,12 @@ def webScraper(
     # Check rounds
     for result in top6_results_links:
         # Open results page
-        response_text, o2cm_results_cache_dict = get_result_from_link(
+        o2cm_result_info_dict, o2cm_results_cache_dict = get_result_from_link(
             result.link, o2cm_results_cache_dict
         )
-        soup = BeautifulSoup(response_text, "html.parser")
 
         # Count number of rounds in event
-        select_element = soup.select_one("select")
-        num_rounds = 0
-        if select_element:
-            options = select_element.find_all("option")
-            num_rounds = len(options)
+        num_rounds = o2cm_result_info_dict["num_rounds"]
 
         # Check if we earned points. If we did, add those points to the data
         points_added = False
@@ -327,12 +345,20 @@ def webScraper(
                             level = result.level
                         eval(result.style + "_data")[level][dance][i] += num_points
                         points_added = True
-            if show_work and points_added:
-                print(f"{result} {num_rounds} rounds. Adding {num_points} point(s).")
+            if points_added:
+                if streamlit:
+                    dancer_expander.write(
+                        f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
+                    )
+                elif show_work:
+                    print(
+                        f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
+                    )
 
     # Save the visited links back to the json
-    with open(o2cm_results_cache_json, "w") as f:
-        json.dump(o2cm_results_cache_dict, f, indent=2)
+    if local_json:
+        with open(o2cm_results_cache_json, "w") as f:
+            json.dump(o2cm_results_cache_dict, f, indent=2)
 
     # Calculate the double points for level below and +7 for 2+ levels below rules
     for d in [smooth_data, standard_data, rhythm_data, latin_data]:
@@ -350,13 +376,13 @@ def webScraper(
                                 d[level][dance][0] += 7
 
     # For compChecker.py via dancerClass
-    if results_only:
+    if results_only or streamlit:
         return {
             "smooth": smooth_data,
             "standard": standard_data,
             "rhythm": rhythm_data,
             "latin": latin_data,
-        }
+        }, o2cm_results_cache_dict
 
     # The rest is all for website.py:
 
@@ -431,7 +457,7 @@ def webScraper(
 
 # For testing
 if __name__ == "__main__":
-    output = webScraper(first_names, last_names)
+    output = webScraper(first_names, last_names, streamlit=streamlit)
 
     for line in output:
         print()

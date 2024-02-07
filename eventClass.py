@@ -1,4 +1,4 @@
-from utils import which_ele_is_in_str, lists_both_have_ele_in_str
+from utils import which_ele_is_in_str, lists_both_have_ele_in_str, streamlit_or_print
 
 
 class Event:
@@ -7,21 +7,24 @@ class Event:
 
     self.raw_text       : raw text from entries.o2cm.com for that event
     self.debug_reject_headers: 1 to print out things we don't know what to do with
+    self.streamlit_mode : 1 to print to streamlit, 0 to print to console
     self.level          : what level the event was
     self.style          : what style the event was
     self.dances         : list of dances in the result
     self.dances_string  : capital letters for each dance (example: WTFQ)
     """
 
-    def __init__(self, event, debug_reject_headers=0):
+    def __init__(self, event, debug_reject_headers=False, streamlit_mode=False):
         """
         Initializes the Event class
 
         event: html element from beautiful soup
         debug_reject_headers: 1 to print out things we don't know what to do with
+        streamlit_mode: 1 to print to streamlit, 0 to print to console
         """
         self.raw_text = event.text
         self.debug_reject_headers = debug_reject_headers
+        self.streamlit_mode = streamlit_mode
         self.level = self._getLevel()
         self.style = self._getStyle()
         self.dances = self._getDances()
@@ -71,7 +74,9 @@ class Event:
             if which_ele_is_in_str(lst, result_text):
                 return lst[0]
         if self.debug_reject_headers:
-            print(f"{result_text}: has no valid level.")
+            streamlit_or_print(
+                f"{result_text}: has no valid level.", self.streamlit_mode
+            )
 
         return None
 
@@ -116,7 +121,9 @@ class Event:
         ):
             return "standard"
         elif self.debug_reject_headers:
-            print(f"{result_text}: has no valid style.")
+            streamlit_or_print(
+                f"{result_text}: has no valid style.", self.streamlit_mode
+            )
 
         return None
 
@@ -160,8 +167,9 @@ class Event:
             elif dance_letter in dances_dictionary:
                 dances.append(dances_dictionary[dance_letter])
             elif self.debug_reject_headers:
-                print(
-                    f"{dance_letter}: not a valid dance letter in {event_dance_letters}."
+                streamlit_or_print(
+                    f"{dance_letter}: not a valid dance letter in {event_dance_letters}.",
+                    self.streamlit_mode,
                 )
 
         if dances:

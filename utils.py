@@ -1,5 +1,6 @@
 import httpx
 from bs4 import BeautifulSoup
+import streamlit as st
 
 
 def which_ele_is_in_str(list, string):
@@ -212,19 +213,56 @@ def get_result_from_link(
     """
     if link not in o2cm_results_cache_dict:
         response_text = httpx_client().get(link).text
-        o2cm_results_cache_dict[link] = response_text
+        o2cm_result_info_dict = get_info_from_o2cm_results(response_text)
+        o2cm_results_cache_dict[link] = o2cm_result_info_dict
     else:
-        response_text = o2cm_results_cache_dict[link]
+        o2cm_result_info_dict = o2cm_results_cache_dict[link]
         # Doing this to make the added link more-recently used
         o2cm_results_cache_dict.pop(link)
-        o2cm_results_cache_dict[link] = response_text
+        o2cm_results_cache_dict[link] = o2cm_result_info_dict
 
     if len(o2cm_results_cache_dict) > max_links:
         oldest_link = o2cm_results_cache_dict.pop(0)  # Remove the oldest link
         if show_work:
             print(f"Removing oldest link: {oldest_link}")
 
-    return response_text, o2cm_results_cache_dict
+    return o2cm_result_info_dict, o2cm_results_cache_dict
+
+
+def get_info_from_o2cm_results(html):
+    """
+    Extracts information from the O2CM results HTML.
+
+    Args:
+        html (str): The HTML content of the O2CM results page.
+
+    Returns:
+        dict: A dictionary containing the extracted information.
+            - num_rounds (int): The number of rounds in the competition.
+            - dancer_names (list): A list of dancer names.
+            - headers_text (list): A list of header texts.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Get num_rounds
+    select_element = soup.select_one("select")
+    num_rounds = 0
+    if select_element:
+        options = select_element.find_all("option")
+        num_rounds = len(options)
+
+    # Get dancer_names
+    dancer_names = [link.get_text() for link in soup.find_all("a")]
+
+    # Get headers_text
+    headers = soup.select(".h3")
+    headers_text = [header.text.lower() for header in headers]
+
+    return {
+        "num_rounds": num_rounds,
+        "dancer_names": dancer_names,
+        "headers_text": headers_text,
+    }
 
 
 def httpx_client(timeout=120):
@@ -240,3 +278,21 @@ def httpx_client(timeout=120):
     """
     client = httpx.Client(timeout=timeout)
     return client
+
+
+def streamlit_or_print(text, streamlit_mode):
+    """
+    Print the text if in print mode, otherwise use streamlit.write.
+
+    Args:
+        text (str): The text to print or write.
+        streamlit_mode (bool): Whether to use streamlit.write or print.
+
+    Returns:
+        None
+    """
+    if streamlit_mode:
+        st.write(text)
+    else:
+        print(text)
+    return

@@ -42,7 +42,7 @@ class Dancer:
         calls webScraper() on the dancer, takes a while
         """
         self.styles_data_dict = webScraper(
-            self.first_name, self.last_name, 1, show_work, debug_reject_headers
+            self.first_name, self.last_name, True, show_work, debug_reject_headers
         )
 
     def get_points(self, style, level, dance):
