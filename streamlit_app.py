@@ -141,7 +141,7 @@ def main():
 
     o2cm_results_cache_dict = ask_for_json()
 
-    if o2cm_results_cache_dict is None:
+    if o2cm_results_cache_dict is not None:
         st.write("Enter a first and last name (or lists of each)")
         st.write(
             """Bonus feature! If the person you are searching for has multiple O2CM accounts,
