@@ -5,7 +5,7 @@ from time import time
 from utils import remove_TBAs_and_dups, httpx_client
 
 if __name__ == "__main__":
-    comp_code = "ndc"
+    comp_code = "rub"
     first_name = ""
     last_name = ""
     format_for_spreadsheet = True
@@ -32,6 +32,8 @@ def compChecker(
     """
     # Start timer
     start_time = time()
+    total_num_new_results = 0
+    total_num_total_results = 0
 
     comp_entries_website = "https://entries.o2cm.com/?event=" + comp_code
 
@@ -116,6 +118,9 @@ def compChecker(
             if i + 1 == num_dancers:
                 print("\n\n")
 
+            total_num_new_results += dancer.results_nums_dict["num_new_results"]
+            total_num_total_results += dancer.results_nums_dict["num_total_results"]
+
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
     num_dancers_with_events = 0
@@ -165,6 +170,11 @@ def compChecker(
     print(
         f"This took {time_in_minutes} minutes to run for {num_dancers} dancers. "
         + f"That is an average {seconds_per_dancer} seconds/dancer.\n"
+    )
+
+    percent_new_results = round(100 * total_num_new_results / total_num_total_results)
+    print(
+        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
     )
     return
 

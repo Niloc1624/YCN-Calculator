@@ -7,6 +7,10 @@ class Dancer:
     self.first_name : first name of dancer
     self.last_name : last name of dancer
     self.full_name : dancer's name in format "first_name last_name"
+    
+    After calling calculate_points(), the following dictionary will be available:
+    self.styles_data_dict : dictionary of dancer's points
+    self.results_nums_dict : dictionary of how many results were not in the JSON and how many total results there were
     """
 
     def __init__(self, dancer_name, format):
@@ -45,6 +49,7 @@ class Dancer:
             self.first_name, self.last_name, True, show_work, debug_reject_headers
         )
         self.styles_data_dict = web_scraper_output[0]
+        self.results_nums_dict = web_scraper_output[1]
 
     def get_points(self, style, level, dance):
         """
