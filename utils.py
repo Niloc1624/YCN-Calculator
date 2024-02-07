@@ -298,3 +298,21 @@ def streamlit_or_print(text, streamlit_mode):
     else:
         print(text)
     return
+
+
+def get_percent_new_results(num_new_results, num_total_results):
+    """
+    Returns the percentage of new results.
+
+    Args:
+        num_new_results (int): The number of new results.
+        num_total_results (int): The total number of results.
+
+    Returns:
+        float: The percentage of new results.
+    """
+    if num_total_results > 0:
+        output = round(num_new_results / num_total_results * 100)
+    else:
+        output = 0
+    return output

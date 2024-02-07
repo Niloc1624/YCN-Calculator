@@ -4,7 +4,7 @@ import pandas as pd
 from resultClass import Result
 from datetime import date
 import json
-from utils import get_result_from_link, httpx_client
+from utils import httpx_client, get_percent_new_results
 import streamlit as st
 
 if __name__ == "__main__":
@@ -447,7 +447,7 @@ def webScraper(
          This number is just fyi."""
     )
 
-    percent_new_results = round(100 * num_new_results / num_total_results)
+    percent_new_results = get_percent_new_results(num_new_results, num_total_results)
     output.append(
         f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
     )

@@ -2,7 +2,7 @@ import streamlit as st
 from webScraper import webScraper
 import pandas as pd
 import json
-from utils import httpx_client
+from utils import httpx_client, get_percent_new_results
 
 
 def process_names(first_names, last_names):
@@ -120,7 +120,7 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
 
     num_new_results = results_nums_dict["num_new_results"]
     num_total_results = results_nums_dict["num_total_results"]
-    percent_new_results = round(100 * num_new_results / num_total_results)
+    percent_new_results = get_percent_new_results(num_new_results, num_total_results)
     st.write(
         f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
     )
@@ -175,10 +175,12 @@ def main():
                  Additionally, the the more resent searches will be moved to the top of the JSON file, so they will not
                  be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
         )
-        st.markdown("""By default, the JSON file from
+        st.markdown(
+            """By default, the JSON file from
                     [here](https://github.com/Niloc1624/YCN-Calculator/blob/master/o2cm_results_cache.json)
                     is used. If you upload a JSON file, the program will combine it with the default one
-                    above and use the combined JSON file.""")
+                    above and use the combined JSON file."""
+        )
 
     st.write("## Enter a first and last name (or lists of each)")
     st.write(

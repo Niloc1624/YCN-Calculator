@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from eventClass import Event
 from dancerClass import Dancer
 from time import time
-from utils import remove_TBAs_and_dups, httpx_client
+from utils import remove_TBAs_and_dups, httpx_client, get_percent_new_results
 
 if __name__ == "__main__":
     comp_code = "ndc"
@@ -172,7 +172,9 @@ def compChecker(
         + f"That is an average {seconds_per_dancer} seconds/dancer.\n"
     )
 
-    percent_new_results = round(100 * total_num_new_results / total_num_total_results)
+    percent_new_results = get_percent_new_results(
+        total_num_new_results, total_num_total_results
+    )
     print(
         f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
     )
