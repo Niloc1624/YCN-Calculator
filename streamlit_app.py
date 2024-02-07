@@ -148,7 +148,7 @@ def main():
 
     st.title("YCN Point Calculator")
 
-    recommendation = """#### testRECOMMENDED: Upload the JSON file from the last time you used this.
+    recommendation = """#### RECOMMENDED: Upload the JSON file from the last time you used this.
                    If this is your first time or if you lost the file, you can skip this step."""
     st.write(recommendation.replace("\n", ""))
 
