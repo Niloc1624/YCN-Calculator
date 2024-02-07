@@ -2,6 +2,7 @@ import streamlit as st
 from webScraper import webScraper
 import pandas as pd
 import json
+from utils import httpx_client
 
 
 def process_names(first_names, last_names):
@@ -113,7 +114,7 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
     Returns:
         None
     """
-    st.write("#### When running this in the future, please upload this new JSON file.")
+    st.write("#### If there are any new results, please upload this new JSON file instead when running this in the future.")
 
     num_new_results = results_nums_dict["num_new_results"]
     num_total_results = results_nums_dict["num_total_results"]
@@ -123,7 +124,7 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
     )
     st.download_button(
         "Download new JSON",
-        json.dumps(new_o2cm_results_cache_dict),
+        json.dumps(new_o2cm_results_cache_dict, indent=2),
         "o2cm_results_cache.json",
     )
     st.write(
@@ -150,9 +151,13 @@ def main():
                    the button below and upload it into the field below."""
     st.write(requirements.replace("\n", ""))
 
+    json_url = "https://raw.githubusercontent.com/Niloc1624/YCN-Calculator/master/o2cm_results_cache.json"
+
+    o2cm_json = httpx_client().get(json_url).json()
+
     st.download_button(
         label="Download JSON",
-        data="https://github.com/Niloc1624/YCN-Calculator/raw/master/o2cm_results_cache.json",
+        data=json.dumps(o2cm_json, indent=2),
         file_name="o2cm_results_cache.json",
     )
 
