@@ -148,6 +148,10 @@ def main():
 
     st.title("YCN Point Calculator")
 
+    st.markdown(
+        "Message [Colin on Facebook](https://www.facebook.com/colin.richter.50/) with any errors, questions, or suggestions."
+    )
+
     recommendation = """#### RECOMMENDED: Upload the JSON file from the last time you used this.
                    If this is your first time or if you lost the file, you can skip this step."""
     st.write(recommendation.replace("\n", ""))
