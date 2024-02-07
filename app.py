@@ -69,7 +69,7 @@ def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict
     if not first_names or not last_names:
         st.warning("Please enter both first and last names.")
     else:
-        result_dict, new_o2cm_results_cache_dict = webScraper(
+        result_dict, new_o2cm_results_cache_dict, results_nums_dict = webScraper(
             first_names,
             last_names,
             streamlit=True,
@@ -81,10 +81,16 @@ def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict
             values_dict = result_dict[style]
             values_df = process_result(values_dict, simple=simple)
             output_tables[style] = values_df
-    return output_tables, new_o2cm_results_cache_dict
+    return output_tables, new_o2cm_results_cache_dict, results_nums_dict
 
 
 def ask_for_json():
+    """
+    Asks the user to upload a JSON file and returns its contents as a dictionary.
+
+    Returns:
+        dict: The contents of the uploaded JSON file as a dictionary.
+    """
     o2cm_results_cache_dict = None
     o2cm_results_cache_json = st.file_uploader(
         "I'm working on a way to automate this. For now, you have to do it manually.",
@@ -95,8 +101,26 @@ def ask_for_json():
     return o2cm_results_cache_dict
 
 
-def display_results(output_tables, new_o2cm_results_cache_dict):
+def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dict):
+    """
+    Display the results in a Streamlit app and provide a download button for a new JSON file.
+
+    Args:
+        output_tables (dict): A dictionary containing the output tables for different styles.
+        new_o2cm_results_cache_dict (dict): A dictionary containing the new O2CM results cache.
+        results_nums_dict (dict): A dictionary containing the number of new and total results.
+
+    Returns:
+        None
+    """
     st.write("#### When running this in the future, please upload this new JSON file.")
+
+    num_new_results = results_nums_dict["num_new_results"]
+    num_total_results = results_nums_dict["num_total_results"]
+    percent_new_results = round(100 * num_new_results / num_total_results)
+    st.write(
+        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
+    )
     st.download_button(
         "Download new JSON",
         json.dumps(new_o2cm_results_cache_dict),
@@ -121,25 +145,31 @@ def main():
 
     st.title("YCN Point Calculator")
 
-    requirements = """#### REQUIRED: Upload the .json file from the last time you used this.
-                   If this is your first time or if you lost the file, Download the .json file from
-                   [this link]() and upload it into the field below."""
-    st.markdown(requirements.replace("\n", ""))
+    requirements = """#### REQUIRED: Upload the JSON file from the last time you used this.
+                   If this is your first time or if you lost the file, Download the JSON file from
+                   the button below and upload it into the field below."""
+    st.write(requirements.replace("\n", ""))
+
+    st.download_button(
+        label="Download JSON",
+        data="https://github.com/Niloc1624/YCN-Calculator/raw/master/o2cm_results_cache.json",
+        file_name="o2cm_results_cache.json",
+    )
+
+    o2cm_results_cache_dict = ask_for_json()
 
     with st.expander("Why?"):
         st.write(
-            """The .json contains a cache of the results from several thousand O2CM results pages.
-                 This is necessary to avoid hitting the O2CM servers too hard. Also, getting a result from the .json
+            """The JSON contains a cache of the results from several thousand O2CM results pages.
+                 This is necessary to avoid hitting the O2CM servers too hard. Also, getting a result from the JSON
                  is about 7x faster than getting it from the O2CM servers."""
         )
         st.write(
-            """When you run this, you will get a new .json file to use next time. This new .json
+            """When you run this, you will get a new JSON file to use next time. This new JSON
                  will contain the results from the new results pages you hit if they are not already in the cache.
-                 Additionally, the the more resent searches will be moved to the top of the .json file, so they will not
+                 Additionally, the the more resent searches will be moved to the top of the JSON file, so they will not
                  be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
         )
-
-    o2cm_results_cache_dict = ask_for_json()
 
     if o2cm_results_cache_dict is not None:
         st.write("Enter a first and last name (or lists of each)")
@@ -167,10 +197,12 @@ def main():
             )
 
         if st.button("Process Name(s)"):
-            output_tables, new_o2cm_results_cache_dict = process_names(
-                first_names, last_names, simple, o2cm_results_cache_dict
+            output_tables, new_o2cm_results_cache_dict, results_nums_dict = (
+                process_names(first_names, last_names, simple, o2cm_results_cache_dict)
             )
-            display_results(output_tables, new_o2cm_results_cache_dict)
+            display_results(
+                output_tables, new_o2cm_results_cache_dict, results_nums_dict
+            )
 
     return
 

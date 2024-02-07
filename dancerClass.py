@@ -41,9 +41,10 @@ class Dancer:
         """
         calls webScraper() on the dancer, takes a while
         """
-        self.styles_data_dict = webScraper(
+        web_scraper_output = webScraper(
             self.first_name, self.last_name, True, show_work, debug_reject_headers
         )
+        self.styles_data_dict = web_scraper_output[0]
 
     def get_points(self, style, level, dance):
         """
@@ -57,6 +58,6 @@ class Dancer:
             level = "champ"
         # Only try to get points for an event if it has a valid style, level, and dance
         if style and level and dance:
-                return self.styles_data_dict[style.lower()][level][dance.lower()][0]
+            return self.styles_data_dict[style.lower()][level][dance.lower()][0]
         else:
             return 0

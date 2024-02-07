@@ -209,12 +209,14 @@ def get_result_from_link(
         max_links (int, optional): The maximum number of links to cache. Defaults to 1000.
 
     Returns:
-        tuple: A tuple containing the retrieved data and the updated cache dictionary.
+        tuple: A tuple containing the retrieved data and the updated cache dictionary and whether the result was new.
     """
+    is_new_result = False
     if link not in o2cm_results_cache_dict:
         response_text = httpx_client().get(link).text
         o2cm_result_info_dict = get_info_from_o2cm_results(response_text)
         o2cm_results_cache_dict[link] = o2cm_result_info_dict
+        is_new_result = True
     else:
         o2cm_result_info_dict = o2cm_results_cache_dict[link]
         # Doing this to make the added link more-recently used
@@ -226,7 +228,7 @@ def get_result_from_link(
         if show_work:
             print(f"Removing oldest link: {oldest_link}")
 
-    return o2cm_result_info_dict, o2cm_results_cache_dict
+    return o2cm_result_info_dict, o2cm_results_cache_dict, is_new_result
 
 
 def get_info_from_o2cm_results(html):

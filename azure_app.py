@@ -16,7 +16,8 @@ def input_page():
 def display_list():
     first_names = request.form["first_name"]
     last_names = request.form["last_name"]
-    output = webScraper(first_names, last_names)
+    webScraper_output = webScraper(first_names, last_names)
+    output = webScraper_output[0]
     return render_template(
         "display_list.html",
         output=output,

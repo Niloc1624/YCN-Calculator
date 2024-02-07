@@ -14,6 +14,8 @@ class Result(Event):
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
     self.date           : date of the event stored with date object
+    self.num_rounds     : number of rounds in the event
+    self.is_new_result  : True if the result is new, False if it was cached
 
     from Event class:
     self.raw_text       : raw text from the individual results.o2cm.com page for that event
@@ -87,9 +89,13 @@ class Result(Event):
         ]
 
         # Click in to the event
-        o2cm_result_info_dict, self.o2cm_results_cache_dict = get_result_from_link(
+        o2cm_result_info_dict, self.o2cm_results_cache_dict, is_new_result = get_result_from_link(
             self.link, self.o2cm_results_cache_dict
         )
+
+        # Add the number of rounds to the Result object, add whether the result was new or not
+        self.num_rounds = o2cm_result_info_dict["num_rounds"]
+        self.is_new_result = is_new_result
 
         # Make sure dancer actually made the final (may not be the case if <6 couples in final)
         if self.dancer_name.casefold() not in [

@@ -8,8 +8,8 @@ from utils import get_result_from_link, httpx_client
 import streamlit as st
 
 if __name__ == "__main__":
-    first_names = "Marie"
-    last_names = "Ghosn"
+    first_names = "Gabriel"
+    last_names = "Jones"
     streamlit = False
 
 
@@ -245,6 +245,8 @@ def webScraper(
     last_names = last_names.split(",")
 
     # Load json cache of visited links
+    cached_results = 0
+    num_new_results = 0
     if o2cm_results_cache_dict:
         local_json = False
     else:
@@ -317,19 +319,16 @@ def webScraper(
                     date_str = match.group()
 
     # Check rounds
+    num_total_results = len(top6_results_links)
     for result in top6_results_links:
-        # Open results page
-        o2cm_result_info_dict, o2cm_results_cache_dict = get_result_from_link(
-            result.link, o2cm_results_cache_dict
-        )
 
-        # Count number of rounds in event
-        num_rounds = o2cm_result_info_dict["num_rounds"]
+        if result.is_new_result:
+            num_new_results += 1
 
         # Check if we earned points. If we did, add those points to the data
         points_added = False
-        if (num_rounds == 2 and result.placement <= 3) or (
-            num_rounds > 2 and result.placement <= 6
+        if (result.num_rounds == 2 and result.placement <= 3) or (
+            result.num_rounds > 2 and result.placement <= 6
         ):
             for dance in result.dances:
                 num_points = max(4 - result.placement, 1)
@@ -348,11 +347,11 @@ def webScraper(
             if points_added:
                 if streamlit:
                     dancer_expander.write(
-                        f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
+                        f"{result} {result.num_rounds} rounds. Adding {num_points} point(s)."
                     )
                 elif show_work:
                     print(
-                        f"{result} {num_rounds} rounds. Adding {num_points} point(s)."
+                        f"{result} {result.num_rounds} rounds. Adding {num_points} point(s)."
                     )
 
     # Save the visited links back to the json
@@ -376,13 +375,22 @@ def webScraper(
                                 d[level][dance][0] += 7
 
     # For compChecker.py via dancerClass
+    results_nums_dict = {
+        "num_new_results": num_new_results,
+        "num_total_results": num_total_results,
+    }
+
     if results_only or streamlit:
-        return {
-            "smooth": smooth_data,
-            "standard": standard_data,
-            "rhythm": rhythm_data,
-            "latin": latin_data,
-        }, o2cm_results_cache_dict
+        return (
+            {
+                "smooth": smooth_data,
+                "standard": standard_data,
+                "rhythm": rhythm_data,
+                "latin": latin_data,
+            },
+            o2cm_results_cache_dict,
+            results_nums_dict,
+        )
 
     # The rest is all for website.py:
 
@@ -437,6 +445,11 @@ def webScraper(
     output.append(
         """The second number is the number of the points earned by reaching finals in that level.
          This number is just fyi."""
+    )
+
+    percent_new_results = round(100 * num_new_results / num_total_results)
+    output.append(
+        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
     )
 
     # The goods (data)
