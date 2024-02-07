@@ -2,8 +2,7 @@
 This is a YCN point calculator that scrapes from https://results.o2cm.com/. Points are calculated according to MIT's system: http://ballroom.mit.edu/index.php/ycn-proficiency-points/
 
 If you want to use this to check a dancer's YCN points you have these options:
-- It's alive! Navigate to https://ballroom-calc.azurewebsites.net/, note that this website may take up to 2 minutes to load or to calulate points for a dancer. It's a slow website and currently doesn't give much feedback that it's loading, so give it a minute or two to calculate and display the points.
-- Run app.py on your local machine and open the localhost link it outputs in your browser of choice.
+- It's alive! Navigate to https://ballroom-calc.streamlit.app/
 - Set manual=1 in webScraper.py, put the first and last names there, and run webScraper.py. Outputs will be printed to terminal.
 
 If you want to use this to check a given comp for dancers who have placed out of events they've registered for:
