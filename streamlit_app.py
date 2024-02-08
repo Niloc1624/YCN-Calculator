@@ -176,7 +176,7 @@ def main():
         st.write(
             """When you run this, you will get a new JSON file to use next time. This new JSON
                  will contain the results from the new results pages you hit if they are not already in the cache.
-                 Additionally, the the more resent searches will be moved to the top of the JSON file, so they will not
+                 Additionally, the more recent searches will be moved to the top of the JSON file, so they will not
                  be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
         )
         st.markdown(
