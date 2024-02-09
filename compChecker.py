@@ -176,7 +176,7 @@ def compChecker(
         total_num_new_results, total_num_total_results
     )
     print(
-        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
+        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.\n"
     )
     return
 

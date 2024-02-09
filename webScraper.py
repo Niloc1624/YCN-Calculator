@@ -8,8 +8,8 @@ from utils import httpx_client, get_percent_new_results
 import streamlit as st
 
 if __name__ == "__main__":
-    first_names = "Gabriel"
-    last_names = "Jones"
+    first_names = "first_names"
+    last_names = "last_names"
     streamlit = False
 
 
