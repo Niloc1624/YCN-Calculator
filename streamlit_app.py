@@ -140,6 +140,21 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
 
     return
 
+def warn_about_leading_or_trailing_spaces(str):
+    """
+    Check for leading or trailing spaces in a string.
+
+    Args:
+        str (str): The string to check.
+
+    Returns:
+        None
+    """
+    if str.startswith(" "):
+        st.warning("This starts with a space, is that on purpose?")
+    if str.endswith(" "):
+        st.warning("This ends with a space, is that on purpose?")
+    return
 
 def main():
     """
@@ -197,8 +212,10 @@ def main():
     col1, col2 = st.columns(2)
     with col1:
         first_names = st.text_input("First Name(s)")
+        warn_about_leading_or_trailing_spaces(first_names)
     with col2:
         last_names = st.text_input("Last Name(s)")
+        warn_about_leading_or_trailing_spaces(last_names)
 
     simple = not st.checkbox("Detailed Tables")
     if not simple:
