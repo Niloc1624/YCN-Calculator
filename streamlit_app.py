@@ -135,10 +135,10 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
     )
 
     for style in output_tables:
-        st.write(f"### {style.title()}")
-        st.table(output_tables[style])
+        st.write(f"### {style.title()}", output_tables[style])
 
     return
+
 
 def warn_about_leading_or_trailing_spaces(str):
     """
@@ -155,6 +155,7 @@ def warn_about_leading_or_trailing_spaces(str):
     if str.endswith(" "):
         st.warning("This ends with a space, is that on purpose?")
     return
+
 
 def main():
     """
