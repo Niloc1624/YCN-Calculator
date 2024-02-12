@@ -7,7 +7,7 @@ class Dancer:
     self.first_name : first name of dancer
     self.last_name : last name of dancer
     self.full_name : dancer's name in format "first_name last_name"
-    
+
     After calling calculate_points(), the following dictionary will be available:
     self.styles_data_dict : dictionary of dancer's points
     self.results_nums_dict : dictionary of how many results were not in the JSON and how many total results there were
@@ -41,12 +41,36 @@ class Dancer:
         """
         return f"{self.first_name} {self.last_name}"
 
-    def calculate_points(self, show_work=1, debug_reject_headers=1):
+    def calculate_points(
+        self,
+        show_work=1,
+        debug_reject_headers=1,
+        streamlit=False,
+        expander=None,
+        from_comp_checker=False,
+    ):
         """
         calls webScraper() on the dancer, takes a while
+
+        Parameters:
+        - show_work (int): Flag to indicate whether to show work or not. Default is 1.
+        - debug_reject_headers (int): Flag to indicate whether to debug reject headers or not. Default is 1.
+        - streamlit (bool): Flag to indicate whether to use Streamlit or not. Default is False.
+        - expander: Expander object for Streamlit. Default is None.
+        - from_comp_checker (bool): Flag to indicate whether the function is being called from compChecker.py. Default is False.
+
+        Returns:
+        - None
         """
         web_scraper_output = webScraper(
-            self.first_name, self.last_name, True, show_work, debug_reject_headers
+            self.first_name,
+            self.last_name,
+            results_only=True,
+            show_work=show_work,
+            debug_reject_headers=debug_reject_headers,
+            streamlit=streamlit,
+            expander=expander,
+            from_comp_checker=from_comp_checker,
         )
         self.styles_data_dict = web_scraper_output[0]
         self.results_nums_dict = web_scraper_output[2]

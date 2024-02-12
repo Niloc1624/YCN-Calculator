@@ -24,6 +24,7 @@ class Result(Event):
     self.dances         : list of dances in the result
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     self.streamlit_mode : 1 to print to streamlit, 0 to print to console
+    self.expander       : Expander object for Streamlit. Default is None
     """
 
     def __init__(
@@ -34,6 +35,8 @@ class Result(Event):
         date,
         o2cm_results_cache_dict,
         debug_reject_headers=0,
+        streamlit_mode=False,
+        expander=None,
     ):
         """
         Initialize the Result class.
@@ -54,7 +57,7 @@ class Result(Event):
         self.link = result.get("href")
         if self.link.startswith("http:"):
             self.link = "https:" + self.link[5:]
-        super().__init__(result, debug_reject_headers)
+        super().__init__(result, debug_reject_headers, streamlit_mode, expander)
         self.placement = int(self.raw_text.split(")")[0])
         self.dances_string = ", ".join(self.dances)
 
@@ -89,8 +92,8 @@ class Result(Event):
         ]
 
         # Click in to the event
-        o2cm_result_info_dict, self.o2cm_results_cache_dict, is_new_result = get_result_from_link(
-            self.link, self.o2cm_results_cache_dict
+        o2cm_result_info_dict, self.o2cm_results_cache_dict, is_new_result = (
+            get_result_from_link(self.link, self.o2cm_results_cache_dict)
         )
 
         # Add the number of rounds to the Result object, add whether the result was new or not
@@ -121,7 +124,9 @@ class Result(Event):
         # Print out any headers we haven't somehow haven't accounted for
         if reject_dances:
             streamlit_or_print(
-                f"{result_text}: invalid dance(s) {reject_dances}", self.streamlit_mode
+                f"{result_text}: invalid dance(s) {reject_dances}",
+                self.streamlit_mode,
+                self.expander,
             )
 
         if dances:

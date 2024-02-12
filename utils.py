@@ -1,6 +1,7 @@
 import httpx
 from bs4 import BeautifulSoup
 import streamlit as st
+import json
 
 
 def which_ele_is_in_str(list, string):
@@ -56,21 +57,8 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
 
     comp_code = get_comp_code_from_url(url)
 
-    response = httpx_client().get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    dropdown = soup.find("select", attrs={"id": "selEnt"})
-
-    # If there is no dropdown, there are no competitors, probably because there is an error on the page
-    try:
-        competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
-    except:
-        raise NoDropdown()
-
-    # Remove dancers who start with "TBA" (case-sensitive) or are duplicates
-    competitor_name_elements = remove_TBAs_and_dups(
-        competitor_name_elements_with_TBAs_and_dups
-    )
-    num_competitors = len(competitor_name_elements)
+    competitor_names = get_competitor_names_in_comp(url)
+    num_competitors = len(competitor_names)
 
     num_verified_competitors = f"verify_entries set to {verify_entries}"
     if verify_entries:
@@ -87,23 +75,22 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
         response2 = httpx_client().post(url, data=payload)
         soup2 = BeautifulSoup(response2.text, "html.parser")
 
-        verified_competitor_name_elements = []
+        verified_competitor_names = []
         td_elements = soup2.find_all("td")
         # Only keep the td class elements with "&" in them, since those are the couples, also extract text
         td_elements_text = [
             element.text for element in td_elements if "&" in element.text
         ]
 
-        for element in competitor_name_elements:
+        for last_first in competitor_names:
             # Converst "last_name, first_name" to "first_name last_name"
-            last_first = element.text
             first_name = last_first.rsplit(", ", 1)[1]
             last_name = last_first.rsplit(", ", 1)[0]
             full_name = first_name + " " + last_name
 
             if any(full_name in text for text in td_elements_text):
-                verified_competitor_name_elements.append(element)
-        num_verified_competitors = len(verified_competitor_name_elements)
+                verified_competitor_names.append(last_first)
+        num_verified_competitors = len(verified_competitor_names)
 
         if show_work:
             try:
@@ -125,7 +112,35 @@ def count_competitors_in_comp(url, verify_entries=False, show_work=False):
     return output
 
 
-def get_comp_code_from_url(url, with_year=False):
+def get_competitor_names_in_comp(url):
+    """
+    Returns a list of competitor names in a given URL element.
+
+    url (str): The URL of the competition to get the competitor names for.
+
+    Returns:
+    list: A list of competitor names.
+    """
+    response = httpx_client().get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    dropdown = soup.find("select", attrs={"id": "selEnt"})
+
+    # If there is no dropdown, there are no competitors, probably because there is an error on the page
+    try:
+        competitor_name_elements_with_TBAs_and_dups = dropdown.find_all("option")[1:]
+    except:
+        raise NoDropdown()
+
+    # Remove dancers who start with "TBA" (case-sensitive) or are duplicates
+    competitor_name_elements = remove_TBAs_and_dups(
+        competitor_name_elements_with_TBAs_and_dups
+    )
+    competitor_names = [ele.text for ele in competitor_name_elements]
+
+    return competitor_names
+
+
+def get_comp_code_from_url(url, include_year=False):
     """
     Returns the competition code from a given URL element.
 
@@ -137,7 +152,7 @@ def get_comp_code_from_url(url, with_year=False):
     str: The competition code.
     """
 
-    if with_year:
+    if include_year:
         if "results" not in url:
             raise "Must be a https://results.o2cm.com/ URL to have a year"
         num_chars = 5
@@ -196,7 +211,7 @@ def get_most_recent_comp_year(comp_code):
 
 
 def get_result_from_link(
-    link, o2cm_results_cache_dict, max_links=10000, show_work=True
+    link, o2cm_results_cache_dict, max_links=100000, show_work=False
 ):
     """
     Retrieve the result response_text from a given link. If the link has been visited before,
@@ -206,7 +221,7 @@ def get_result_from_link(
     Args:
         link (str): The link to retrieve the data from.
         o2cm_results_cache_dict (dict): A dictionary to cache the results.
-        max_links (int, optional): The maximum number of links to cache. Defaults to 1000.
+        max_links (int, optional): The maximum number of links to cache. Defaults to 100,000.
 
     Returns:
         tuple: A tuple containing the retrieved data and the updated cache dictionary and whether the result was new.
@@ -282,19 +297,23 @@ def httpx_client(timeout=120):
     return client
 
 
-def streamlit_or_print(text, streamlit_mode):
+def streamlit_or_print(text, streamlit_mode, expander=None):
     """
     Print the text if in print mode, otherwise use streamlit.write.
 
     Args:
         text (str): The text to print or write.
         streamlit_mode (bool): Whether to use streamlit.write or print.
+        expander: Expander object for Streamlit. Default is None.
 
     Returns:
         None
     """
     if streamlit_mode:
-        st.write(text)
+        if expander:
+            expander.write(text)
+        else:
+            st.write(text)
     else:
         print(text)
     return
@@ -316,3 +335,46 @@ def get_percent_new_results(num_new_results, num_total_results):
     else:
         output = 0
     return output
+
+
+def get_comps_from_events_o2cm():
+    """
+    Retrieves competition information from the events.o2cm.com website.
+
+    Returns:
+        dict: A dictionary containing the available competitions, where the keys are the competition codes
+              and the values are dictionaries with the competition URL and name.
+    """
+    response = httpx_client().get("https://events.o2cm.com/")
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    available_comps_dict = {}
+    comp_name, entries_url, comp_code = None, None, None
+    for tr in soup.find_all("tr"):
+        # If it is a competition name, get the name
+        if tr.find("td", colspan="3"):
+            comp_name = tr.find("td", colspan="3").contents[0].split("<br>")[0].strip()
+
+        # If it is a competition link, get the link and comp_code
+        elif tr.find("a"):
+            if tr.find("a").get("href").startswith("https://register.o2cm.com"):
+                register_url = tr.find("a").get("href")
+                comp_code = get_comp_code_from_url(register_url)
+                entries_url = "https://entries.o2cm.com/?event=" + comp_code
+
+        # If we have all the info, add it to the dictionary and reset the variables
+        if comp_name and entries_url and comp_code:
+            available_comps_dict[comp_code] = {}
+            available_comps_dict[comp_code]["entries_url"] = entries_url
+            available_comps_dict[comp_code]["comp_name"] = comp_name
+            comp_name, entries_url, comp_code = None, None, None
+
+    return available_comps_dict
+
+
+def count_items_in_json(json_file):
+    """
+    Count the number of items in a JSON file.
+    """
+    with open(json_file, "r") as f:
+        return len(json.load(f))

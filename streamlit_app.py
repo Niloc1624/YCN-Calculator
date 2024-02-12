@@ -5,21 +5,6 @@ import json
 from utils import httpx_client, get_percent_new_results
 
 
-def process_names(first_names, last_names):
-    """
-    Process a list of first names and last names and return a list of full names.
-
-    Args:
-        first_names (list): A list of first names.
-        last_names (list): A list of last names.
-
-    Returns:
-        list: A list of full names, where each full name is a concatenation of the corresponding first name and last name.
-    """
-    full_names = [f"{first} {last}" for first, last in zip(first_names, last_names)]
-    return full_names
-
-
 def process_result(values_dict, simple=False):
     """
     Process the result dictionary and convert it into a DataFrame.
@@ -70,10 +55,14 @@ def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict
     if not first_names or not last_names:
         st.warning("Please enter both first and last names.")
     else:
+        expander = st.expander(
+            f"Raw points for {first_names} {last_names}.", expanded=False
+        )
         result_dict, new_o2cm_results_cache_dict, results_nums_dict = webScraper(
             first_names,
             last_names,
             streamlit=True,
+            expander=expander,
             o2cm_results_cache_dict=o2cm_results_cache_dict,
         )
 
@@ -122,7 +111,8 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
     num_total_results = results_nums_dict["num_total_results"]
     percent_new_results = get_percent_new_results(num_new_results, num_total_results)
     st.write(
-        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
+        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.",
+        f"The JSON now has {len(new_o2cm_results_cache_dict)} results.",
     )
     st.download_button(
         "Download new JSON",
@@ -168,9 +158,10 @@ def main():
         "Message [Colin on Facebook](https://www.facebook.com/colin.richter.50/) with any errors, questions, or suggestions."
     )
 
-    recommendation = """#### RECOMMENDED: Upload the JSON file from the last time you used this.
-                   If this is your first time or if you lost the file, you can skip this step."""
-    st.write(recommendation.replace("\n", ""))
+    st.write(
+        "#### RECOMMENDED: Upload the JSON file from the last time you used this. "
+        + "If this is your first time or if you lost the file, you can skip this step."
+    )
 
     json_url = "https://raw.githubusercontent.com/Niloc1624/YCN-Calculator/master/o2cm_results_cache.json"
 

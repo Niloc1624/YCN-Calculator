@@ -14,17 +14,21 @@ class Event:
     self.dances_string  : capital letters for each dance (example: WTFQ)
     """
 
-    def __init__(self, event, debug_reject_headers=False, streamlit_mode=False):
+    def __init__(
+        self, event, debug_reject_headers=False, streamlit_mode=False, expander=None
+    ):
         """
         Initializes the Event class
 
         event: html element from beautiful soup
         debug_reject_headers: 1 to print out things we don't know what to do with
         streamlit_mode: 1 to print to streamlit, 0 to print to console
+        expander: Expander object for Streamlit. Default is None.
         """
         self.raw_text = event.text
         self.debug_reject_headers = debug_reject_headers
         self.streamlit_mode = streamlit_mode
+        self.expander = expander
         self.level = self._getLevel()
         self.style = self._getStyle()
         self.dances = self._getDances()
@@ -75,7 +79,9 @@ class Event:
                 return lst[0]
         if self.debug_reject_headers:
             streamlit_or_print(
-                f"{result_text}: has no valid level.", self.streamlit_mode
+                f"{result_text}: has no valid level.",
+                self.streamlit_mode,
+                self.expander,
             )
 
         return None
@@ -122,7 +128,9 @@ class Event:
             return "standard"
         elif self.debug_reject_headers:
             streamlit_or_print(
-                f"{result_text}: has no valid style.", self.streamlit_mode
+                f"{result_text}: has no valid style.",
+                self.streamlit_mode,
+                self.expander,
             )
 
         return None
@@ -170,6 +178,7 @@ class Event:
                 streamlit_or_print(
                     f"{dance_letter}: not a valid dance letter in {event_dance_letters}.",
                     self.streamlit_mode,
+                    self.expander,
                 )
 
         if dances:

@@ -4,7 +4,7 @@ import pandas as pd
 from resultClass import Result
 from datetime import date
 import json
-from utils import httpx_client, get_percent_new_results
+from utils import httpx_client, get_percent_new_results, streamlit_or_print
 import streamlit as st
 
 if __name__ == "__main__":
@@ -20,6 +20,8 @@ def webScraper(
     show_work=True,
     debug_reject_headers=True,
     streamlit=False,
+    expander=None,
+    from_comp_checker=False,
     o2cm_results_cache_dict=None,
 ):
     """
@@ -32,6 +34,7 @@ def webScraper(
         show_work (bool, optional): True means print out points and names as they're being added. Defaults to True.
         debug_reject_headers (bool, optional): True means print out any results that couldn't be added for some reason. Defaults to True.
         streamlit (bool, optional): Set to True if using Streamlit framework. Defaults to False.
+        expander (streamlit.expander, optional): Streamlit expander to write to. Defaults to None.
         o2cm_results_cache_dict (dict, optional): dictionary of cache file of visited links. Defaults to None.
 
     Returns:
@@ -245,7 +248,6 @@ def webScraper(
     last_names = last_names.split(",")
 
     # Load json cache of visited links
-    cached_results = 0
     num_new_results = 0
     if o2cm_results_cache_dict:
         local_json = False
@@ -263,12 +265,11 @@ def webScraper(
     top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
+        text = f"Calculating points for {first_name} {last_name}."
         if streamlit:
-            dancer_expander = st.expander(
-                f"Raw points for {first_name} {last_name}.", expanded=False
-            )
+            expander.write(text)
         elif show_work:
-            print("\n", f"Calculating points for {first_name} {last_name}.", "\n")
+            print("\n", text, "\n")
 
         response = httpx_client().get(
             f"https://results.o2cm.com/individual.asp?szLast={last_name}&szFirst={first_name}"
@@ -309,6 +310,8 @@ def webScraper(
                         date_object,
                         o2cm_results_cache_dict,
                         debug_reject_headers,
+                        streamlit_mode=streamlit,
+                        expander=expander,
                     )
                     top6_results_links.append(top6_result)
                     o2cm_results_cache_dict = top6_result.o2cm_results_cache_dict
@@ -344,15 +347,12 @@ def webScraper(
                             level = result.level
                         eval(result.style + "_data")[level][dance][i] += num_points
                         points_added = True
-            if points_added:
-                if streamlit:
-                    dancer_expander.write(
-                        f"{result} {result.num_rounds} rounds. Adding {num_points} point(s)."
-                    )
-                elif show_work:
-                    print(
-                        f"{result} {result.num_rounds} rounds. Adding {num_points} point(s)."
-                    )
+            if points_added and not from_comp_checker:
+                streamlit_or_print(
+                    f"{result} {result.num_rounds} rounds. Adding {num_points} point(s).",
+                    streamlit,
+                    expander,
+                )
 
     # Save the visited links back to the json
     if local_json:

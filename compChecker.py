@@ -2,33 +2,46 @@ from bs4 import BeautifulSoup
 from eventClass import Event
 from dancerClass import Dancer
 from time import time
-from utils import remove_TBAs_and_dups, httpx_client, get_percent_new_results
+from utils import (
+    remove_TBAs_and_dups,
+    httpx_client,
+    get_percent_new_results,
+    streamlit_or_print,
+)
+import streamlit as st
 
 if __name__ == "__main__":
-    comp_code = "ndc"
+    comp_code = "nbc"
     first_name = ""
     last_name = ""
     format_for_spreadsheet = True
 
 
-def compChecker(
+def comp_checker(
     comp_code,
     show_work=1,
     debug_reject_headers=1,
     first_name="",
     last_name="",
     format_for_spreadsheet=False,
+    streamlit=False,
 ):
     """
     Checks a competition for any dancers who are registered for an event they've placed out of.
     Can also check a specific dancer at a competition to see what events they've placed out of.
 
-    comp_code: the three-letter code for the competition
-    show_work: 1 for printing things to screen as it calculates
-    debug_reject_headers: 1 for printing out things that could not be evaluated
-    first_name / last_name: Strings. If they both have values, the program
-                            will check that one dancer for the given competition
-    format_for_spreadsheet: True for formatting the output for a spreadsheet with | delimiters
+    Parameters:
+    comp_code (str): The three-letter code for the competition.
+    show_work (int, optional): 1 for printing things to screen as it calculates. Defaults to 1.
+    debug_reject_headers (int, optional): 1 for printing out things that could not be evaluated. Defaults to 1.
+    first_name (str, optional): The first name of the specific dancer to check. Defaults to "".
+    last_name (str, optional): The last name of the specific dancer to check. Defaults to "".
+    format_for_spreadsheet (bool, optional): True for formatting the output for a spreadsheet with | delimiters. Defaults to False.
+    streamlit (bool, optional): True if running in a Streamlit app. Defaults to False.
+
+    Returns:
+    If streamlit==1: A dictionary containing information about ineligible dancers, if running in Streamlit mode.
+    Otherwise, None.
     """
     # Start timer
     start_time = time()
@@ -66,8 +79,11 @@ def compChecker(
     )
 
     num_dancers = len(competitor_name_elements)
-    if show_work:
-        print("\n", f"{num_dancers} dancer(s) to check for {comp_entries_website}")
+    text = f"{num_dancers} dancer(s) to check for {comp_entries_website}"
+    if streamlit:
+        expander = st.expander(text, expanded=True)
+    elif show_work:
+        print("\n", text)
 
     # Make dictionary skeleton of dancers for level/dance combo
     dancers_and_events_dict = {}
@@ -98,7 +114,9 @@ def compChecker(
     # Call webScraper() on each person to get their points (this will take a while)
     for i, information in enumerate(dancers_and_events_dict.keys()):
         dancer = dancers_and_events_dict[information]["dancer_obj"]
-        dancer.calculate_points(show_work, debug_reject_headers)
+        dancer.calculate_points(
+            show_work, debug_reject_headers, streamlit=streamlit, expander=expander, from_comp_checker=True
+        )
         if show_work:
             dancers_completed = i + 1
             time_in_seconds = time() - start_time
@@ -110,12 +128,15 @@ def compChecker(
                 1,
             )
             seconds_per_dancer = round(time_in_seconds / dancers_completed, 1)
-            print(
+
+            streamlit_or_print(
                 f"Completed {dancers_completed}/{num_dancers} dancers in {time_in_minutes} minutes. "
                 + f"Estimated {est_min_remaining} minutes remaining. "
-                + f"Averaging {seconds_per_dancer} seconds/dancer."
+                + f"Averaging {seconds_per_dancer} seconds/dancer.",
+                streamlit,
+                expander,
             )
-            if i + 1 == num_dancers:
+            if not streamlit and i + 1 == num_dancers:
                 print("\n\n")
 
             total_num_new_results += dancer.results_nums_dict["num_new_results"]
@@ -124,7 +145,16 @@ def compChecker(
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
     num_dancers_with_events = 0
-    if format_for_spreadsheet:
+    if streamlit:
+        ineligible_dancers_dict = {
+            "Dancer": [],
+            "Level": [],
+            "Style": [],
+            "Event": [],
+            "Ineligible Dance": [],
+            "Points in Ineligible Dance": [],
+        }
+    elif format_for_spreadsheet and show_work:
         print(
             "Dancer|Level|Style|Event|Ineligible Dance|Points in Ineligible Dance|Exceptions"
         )
@@ -142,7 +172,16 @@ def compChecker(
 
                     # prob replace this with len(list)
                     dancer_placed_out = 1
-                    if show_work:
+                    if streamlit:
+                        ineligible_dancers_dict["Dancer"].append(dancer)
+                        ineligible_dancers_dict["Level"].append(event.level)
+                        ineligible_dancers_dict["Style"].append(event.style)
+                        ineligible_dancers_dict["Event"].append(event.dances_string)
+                        ineligible_dancers_dict["Ineligible Dance"].append(dance)
+                        ineligible_dancers_dict["Points in Ineligible Dance"].append(
+                            points
+                        )
+                    elif show_work:
                         if format_for_spreadsheet:
                             print(
                                 f"{dancer}|{event.level}|{event.style}|{event.dances_string}|{dance}|{points}"
@@ -155,34 +194,35 @@ def compChecker(
         num_dancers_with_events += dancer_has_events
 
     if show_work:
-        print(
-            "\n",
-            f"{num_dancers_with_events}/{num_dancers} dancers have events.",
-            "\n",
-            f"{num_found}/{num_dancers_with_events} are registered for an event they have placed out of.",
-            "\n",
+        streamlit_or_print(
+            f"\n{num_dancers_with_events}/{num_dancers} dancers have events."
+            + f"\n{num_found}/{num_dancers_with_events} are registered for an event they have placed out of.\n",
+            streamlit,
         )
 
     # End timer
     time_in_seconds = time() - start_time
     time_in_minutes = round(time_in_seconds / 60, 1)
     seconds_per_dancer = round(time_in_seconds / num_dancers, 1)
-    print(
+    streamlit_or_print(
         f"This took {time_in_minutes} minutes to run for {num_dancers} dancers. "
-        + f"That is an average {seconds_per_dancer} seconds/dancer.\n"
+        + f"That is an average {seconds_per_dancer} seconds/dancer.\n",
+        streamlit,
     )
 
     percent_new_results = get_percent_new_results(
         total_num_new_results, total_num_total_results
     )
-    print(
-        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.\n"
+    streamlit_or_print(
+        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.\n",
+        streamlit,
     )
-    return
+    if streamlit:
+        return ineligible_dancers_dict
 
 
 if __name__ == "__main__":
-    compChecker(
+    comp_checker(
         comp_code,
         first_name=first_name,
         last_name=last_name,
