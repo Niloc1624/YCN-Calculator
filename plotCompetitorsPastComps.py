@@ -18,6 +18,7 @@ if __name__ == "__main__":
         "big",
         "inf",
         "occ",
+        "rub",
         "pbc",
         "idg",
         "bds",

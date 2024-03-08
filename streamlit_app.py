@@ -119,10 +119,6 @@ def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dic
         json.dumps(new_o2cm_results_cache_dict, indent=2),
         "o2cm_results_cache.json",
     )
-    st.write(
-        """Results are pulled from https://results.o2cm.com/. YCN points are calculated
-             according to this system: http://ballroom.mit.edu/index.php/ycn-proficiency-points/."""
-    )
 
     for style in output_tables:
         st.write(f"### {style.title()}", output_tables[style])
@@ -198,6 +194,10 @@ def main():
         """If the person you are searching for has multiple O2CM accounts, you can enter comma-delimited
         lists of first names and last names. The calculator will add the results from these accounts together.
         Make sure there are an equal number of first names and last names in each list.""",
+    )
+    st.write(
+        """Results are pulled from https://results.o2cm.com/. YCN points are calculated
+        according to [MIT's rules](http://ballroom.mit.edu/index.php/ycn-proficiency-points/)."""
     )
 
     # Display two input boxes side by side
