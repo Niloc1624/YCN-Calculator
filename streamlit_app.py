@@ -4,6 +4,11 @@ import pandas as pd
 import json
 from utils import httpx_client, get_percent_new_results
 
+st.set_page_config(
+    page_title="Ballroom Calculator",
+    page_icon="💃",
+)
+
 
 def process_result(values_dict, simple=False):
     """
