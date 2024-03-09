@@ -38,7 +38,7 @@ def process_result(values_dict, simple=False):
     return values_df
 
 
-@st.cache_data()
+@st.cache_data(ttl="10m", show_spinner="Calculating points...")
 def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict=None):
     """
     Process the given first names and last names.
