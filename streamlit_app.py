@@ -2,12 +2,7 @@ import streamlit as st
 from webScraper import webScraper
 import pandas as pd
 import json
-from utils import httpx_client, get_percent_new_results
-
-st.set_page_config(
-    page_title="Ballroom Calculator",
-    page_icon="💃",
-)
+from utils import httpx_client, get_percent_new_results, streamlit_page_header
 
 
 def process_result(values_dict, simple=False):
@@ -153,11 +148,7 @@ def main():
     Main function to run the application.
     """
 
-    st.title("YCN Point Calculator")
-
-    st.markdown(
-        "Message [Colin on Facebook](https://www.facebook.com/colin.richter.50/) with any errors, questions, or suggestions."
-    )
+    streamlit_page_header("YCN Point Calculator")
 
     st.write(
         "#### RECOMMENDED: Upload the JSON file from the last time you used this. "

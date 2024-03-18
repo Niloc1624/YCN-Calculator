@@ -378,3 +378,24 @@ def count_items_in_json(json_file):
     """
     with open(json_file, "r") as f:
         return len(json.load(f))
+
+
+def streamlit_page_header(title):
+    """
+    Create a header for a Streamlit page.
+
+    Args:
+        title (str): The title of the page.
+
+    Returns:
+        None
+    """
+    st.set_page_config(
+        page_title="Competition Checker",
+        page_icon="💃",
+    )
+    st.title(title)
+    st.markdown(
+        "Message [Colin on Facebook](https://www.facebook.com/colin.richter.50/) with any errors, questions, or suggestions."
+    )
+    return
