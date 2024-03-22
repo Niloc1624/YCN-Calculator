@@ -32,7 +32,7 @@ def main():
     Main function to run the application.
     """
 
-    streamlit_page_header("Competition Checker")
+    streamlit_page_header("Competition Checkerr")
 
     form_submitted = False
 
