@@ -9,7 +9,7 @@ from compChecker import comp_checker
 import pandas as pd
 
 
-@st.cache_data(ttl="10m", show_spinner="Fetching Competitor Info...")
+@st.cache_data(ttl="10m", show_spinner=False)
 def call_comp_checker(comp_code):
     """
     Calls the comp_checker function to check the eligibility of dancers for a competition.

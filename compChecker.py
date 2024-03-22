@@ -81,7 +81,7 @@ def comp_checker(
     num_dancers = len(competitor_name_elements)
     text = f"{num_dancers} dancer(s) to check for {comp_entries_website}"
     if streamlit:
-        expander = st.expander(text, expanded=True)
+        expander = st.status(text, expanded=True)
     elif show_work:
         print("\n", text)
 
@@ -115,7 +115,11 @@ def comp_checker(
     for i, information in enumerate(dancers_and_events_dict.keys()):
         dancer = dancers_and_events_dict[information]["dancer_obj"]
         dancer.calculate_points(
-            show_work, debug_reject_headers, streamlit=streamlit, expander=expander, from_comp_checker=True
+            show_work,
+            debug_reject_headers,
+            streamlit=streamlit,
+            expander=expander,
+            from_comp_checker=True,
         )
         if show_work:
             dancers_completed = i + 1
@@ -141,6 +145,10 @@ def comp_checker(
 
             total_num_new_results += dancer.results_nums_dict["num_new_results"]
             total_num_total_results += dancer.results_nums_dict["num_total_results"]
+
+    # Minimize the expander and update its state
+    if streamlit:
+        expander.update(expanded=False, state="complete")
 
     # Compare their points to their registration, keep track of people who have pointed out
     num_found = 0
