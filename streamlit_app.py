@@ -1,6 +1,7 @@
 import streamlit as st
 from webScraper import webScraper
 import pandas as pd
+import os
 import json
 from utils import httpx_client, get_percent_new_results, streamlit_page_header
 
@@ -163,7 +164,7 @@ def main():
     # Combine the uploaded JSON with the GitHub JSON
     if o2cm_results_cache_dict is not None:
         o2cm_results_cache_dict.update(o2cm_github_dict)
-    else:
+    elif not os.path.exists("o2cm_results_cache.json"):
         o2cm_results_cache_dict = o2cm_github_dict
 
     with st.expander("Why?"):
