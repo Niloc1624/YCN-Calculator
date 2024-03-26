@@ -266,9 +266,7 @@ def webScraper(
     # For loop here for people who have multiple O2CM accounts
     for first_name, last_name in zip(first_names, last_names):
         text = f"Calculating points for {first_name} {last_name}."
-        if streamlit:
-            expander.write(text)
-        elif show_work:
+        if not streamlit and show_work:
             print("\n", text, "\n")
 
         response = httpx_client().get(

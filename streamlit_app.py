@@ -39,7 +39,7 @@ def process_result(values_dict, simple=False):
     return values_df
 
 
-@st.cache_data(ttl="10m", show_spinner="Calculating points...")
+@st.cache_data(ttl="10m", show_spinner=False)
 def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict=None):
     """
     Process the given first names and last names.
@@ -56,8 +56,8 @@ def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict
     if not first_names or not last_names:
         st.warning("Please enter both first and last names.")
     else:
-        expander = st.expander(
-            f"Raw points for {first_names} {last_names}.", expanded=False
+        expander = st.status(
+            f"Calculating points for {first_names} {last_names}.", expanded=True
         )
         result_dict, new_o2cm_results_cache_dict, results_nums_dict = webScraper(
             first_names,
@@ -72,6 +72,8 @@ def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict
             values_dict = result_dict[style]
             values_df = process_result(values_dict, simple=simple)
             output_tables[style] = values_df
+
+        expander.update(expanded=False, state="complete")
     return output_tables, new_o2cm_results_cache_dict, results_nums_dict
 
 
