@@ -21,7 +21,7 @@ class Result(Event):
     self.raw_text       : raw text from the individual results.o2cm.com page for that event
     self.level          : what level the event was
     self.style          : what style the event was
-    self.dances         : list of dances in the result
+    self.dances         : list of dances in the result (note that _getDances() is overridden in this class)
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     self.streamlit_mode : 1 to print to streamlit, 0 to print to console
     self.expander       : Expander object for Streamlit. Default is None
@@ -111,13 +111,12 @@ class Result(Event):
         reject_dances = []
         for header_text in o2cm_result_info_dict["headers_text"]:
             dance = which_ele_is_in_str(dance_list, header_text)
-            if dance:
-                dances.append(dance)
             # Add jank becuase viennese waltz sometimes has a different name
-            elif "viennese waltz" in dances:
-                dances.remove("viennese waltz")
-                if "v. waltz" not in dances:
-                    dances.append("v. waltz")
+            if dance == "viennese waltz":
+                dances.append("v. waltz")
+
+            elif dance:
+                dances.append(dance)
             elif self.debug_reject_headers and header_text != "summary":
                 reject_dances.append(header_text)
 

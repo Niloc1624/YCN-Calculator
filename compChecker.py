@@ -43,10 +43,6 @@ def comp_checker(
     If streamlit==1: A dictionary containing information about ineligible dancers, if running in Streamlit mode.
     Otherwise, None.
     """
-    # Start timer
-    start_time = time()
-    total_num_new_results = 0
-    total_num_total_results = 0
 
     comp_entries_website = "https://entries.o2cm.com/?event=" + comp_code
 
@@ -110,6 +106,11 @@ def comp_checker(
             for dancer_element in dancer_elements:
                 dancer = Dancer(dancer_element, 1)
                 dancers_and_events_dict[dancer.full_name]["events"].append(event)
+
+    # Start timer
+    start_time = time()
+    total_num_new_results = 0
+    total_num_total_results = 0
 
     # Call webScraper() on each person to get their points (this will take a while)
     for i, information in enumerate(dancers_and_events_dict.keys()):
