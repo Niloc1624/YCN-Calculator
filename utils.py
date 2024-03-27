@@ -391,7 +391,7 @@ def streamlit_page_header(title):
         None
     """
     st.set_page_config(
-        page_title="Competition Checker",
+        page_title=title,
         page_icon="💃",
     )
     st.title(title)
