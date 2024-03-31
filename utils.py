@@ -319,19 +319,19 @@ def streamlit_or_print(text, streamlit_mode, expander=None):
     return
 
 
-def get_percent_new_results(num_new_results, num_total_results):
+def get_percent(numerator, denominator):
     """
-    Returns the percentage of new results.
+    Returns the percentage.
 
     Args:
-        num_new_results (int): The number of new results.
-        num_total_results (int): The total number of results.
+        numerator (int): The numerator.
+        denominator (int): The denominator.
 
     Returns:
-        float: The percentage of new results.
+        float: The percentage.
     """
-    if num_total_results > 0:
-        output = round(num_new_results / num_total_results * 100)
+    if denominator > 0:
+        output = round(numerator / denominator * 100)
     else:
         output = 0
     return output

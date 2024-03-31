@@ -5,13 +5,13 @@ from time import time
 from utils import (
     remove_TBAs_and_dups,
     httpx_client,
-    get_percent_new_results,
+    get_percent,
     streamlit_or_print,
 )
 import streamlit as st
 
 if __name__ == "__main__":
-    comp_code = "nbc"
+    comp_code = "mit"
     first_name = ""
     last_name = ""
     format_for_spreadsheet = True
@@ -76,6 +76,7 @@ def comp_checker(
 
     num_dancers = len(competitor_name_elements)
     text = f"{num_dancers} dancer(s) to check for {comp_entries_website}"
+    expander = None
     if streamlit:
         expander = st.status(text, expanded=True)
     elif show_work:
@@ -104,8 +105,9 @@ def comp_checker(
             else:
                 dancer_elements = element.find_all("a")
             for dancer_element in dancer_elements:
-                dancer = Dancer(dancer_element, 1)
-                dancers_and_events_dict[dancer.full_name]["events"].append(event)
+                if dancer_element.text[:3] != "TBA":
+                    dancer = Dancer(dancer_element, 1)
+                    dancers_and_events_dict[dancer.full_name]["events"].append(event)
 
     # Start timer
     start_time = time()
@@ -219,9 +221,7 @@ def comp_checker(
         streamlit,
     )
 
-    percent_new_results = get_percent_new_results(
-        total_num_new_results, total_num_total_results
-    )
+    percent_new_results = get_percent(total_num_new_results, total_num_total_results)
     streamlit_or_print(
         f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.\n",
         streamlit,
