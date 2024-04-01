@@ -3,7 +3,8 @@ from webScraper import webScraper
 import pandas as pd
 import os
 import json
-from utils import httpx_client, get_percent_new_results, streamlit_page_header
+from utils import httpx_client, get_percent, streamlit_page_header
+from firebase_funcs import pull_dicts_from_firebase, upload_dict_to_firebase
 
 
 def process_result(values_dict, simple=False):
@@ -39,7 +40,7 @@ def process_result(values_dict, simple=False):
     return values_df
 
 
-#@st.cache_data(ttl="10m", show_spinner=False)
+# @st.cache_data(ttl="10m", show_spinner=False)
 def process_names(first_names, last_names, simple=False, o2cm_results_cache_dict=None):
     """
     Process the given first names and last names.
@@ -94,34 +95,47 @@ def ask_for_json():
     return o2cm_results_cache_dict
 
 
-def display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dict):
+def display_results(
+    output_tables, new_o2cm_results_cache_dict, results_nums_dict, results_location
+):
     """
-    Display the results in a Streamlit app and provide a download button for a new JSON file.
+    Display the results in a Streamlit app and provide a download button for a new JSON file if using github.
 
     Args:
         output_tables (dict): A dictionary containing the output tables for different styles.
         new_o2cm_results_cache_dict (dict): A dictionary containing the new O2CM results cache.
         results_nums_dict (dict): A dictionary containing the number of new and total results.
+        json_location (str): A string indicating the location of the JSON file (github or firebase).
 
     Returns:
         None
     """
-    st.write(
-        "#### If there are any new results, please upload this new JSON file when running this in the future."
-    )
+
+    if results_location == "github":
+        file = "JSON"
+    else:
+        file = "cache"
 
     num_new_results = results_nums_dict["num_new_results"]
     num_total_results = results_nums_dict["num_total_results"]
-    percent_new_results = get_percent_new_results(num_new_results, num_total_results)
+    percent_new_results = get_percent(num_new_results, num_total_results)
     st.write(
-        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.",
-        f"The JSON now has {len(new_o2cm_results_cache_dict)} results.",
+        f"{num_new_results:,d}/{num_total_results:,d} results ({percent_new_results}%) were new and therefore added to the {file}.",
+        f"The {file} now has {len(new_o2cm_results_cache_dict):,d} results.",
     )
-    st.download_button(
-        "Download new JSON",
-        json.dumps(new_o2cm_results_cache_dict, indent=2),
-        "o2cm_results_cache.json",
-    )
+
+    if results_location == "github":
+        st.write(
+            "#### If there are any new results, please upload this new JSON file when running this in the future."
+        )
+        st.download_button(
+            "Download new JSON",
+            json.dumps(new_o2cm_results_cache_dict, indent=2),
+            "o2cm_results_cache.json",
+        )
+    elif results_location == "firebase" and num_new_results:
+        with st.spinner("Uploading results to Firebase..."):
+            upload_dict_to_firebase(new_o2cm_results_cache_dict)
 
     for style in output_tables:
         st.write(f"### {style.title()}", output_tables[style])
@@ -151,42 +165,48 @@ def main():
     Main function to run the application.
     """
 
+    # Can be github or firebase. If github, the JSON file will asked from the user and downloaded from GitHub.
+    # If firebase, the JSON file will be downloaded from and reuploaded to Firebase.
+    results_location = "github"
+
     streamlit_page_header("YCN Point Calculator")
 
-    st.write(
-        "#### RECOMMENDED: Upload the JSON file from the last time you used this. "
-        + "If this is your first time or if you lost the file, you can skip this step."
-    )
+    if results_location == "github":
 
-    json_url = "https://raw.githubusercontent.com/Niloc1624/YCN-Calculator/master/o2cm_results_cache.json"
-
-    o2cm_github_dict = httpx_client().get(json_url).json()
-
-    o2cm_results_cache_dict = ask_for_json()
-    # Combine the uploaded JSON with the GitHub JSON
-    if o2cm_results_cache_dict is not None:
-        o2cm_results_cache_dict.update(o2cm_github_dict)
-    elif not os.path.exists("o2cm_results_cache.json"):
-        o2cm_results_cache_dict = o2cm_github_dict
-
-    with st.expander("Why?"):
         st.write(
-            """The JSON contains a cache of the results from several thousand O2CM results pages.
-                 This is necessary to avoid hitting the O2CM servers too hard. Also, getting a result from the JSON
-                 is about 7x faster than getting it from the O2CM servers."""
+            "#### RECOMMENDED: Upload the JSON file from the last time you used this. "
+            + "If this is your first time or if you lost the file, you can skip this step."
         )
-        st.write(
-            """When you run this, you will get a new JSON file to use next time. This new JSON
-                 will contain the results from the new results pages you hit if they are not already in the cache.
-                 Additionally, the more recent searches will be moved to the top of the JSON file, so they will not
-                 be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
-        )
-        st.markdown(
-            """By default, the JSON file from
-                    [here](https://github.com/Niloc1624/YCN-Calculator/blob/master/o2cm_results_cache.json)
-                    is used. If you upload a JSON file, the program will combine it with the default one
-                    above and use the combined JSON file."""
-        )
+
+        json_url = "https://raw.githubusercontent.com/Niloc1624/YCN-Calculator/master/o2cm_results_cache.json"
+
+        o2cm_github_dict = httpx_client().get(json_url).json()
+
+        o2cm_results_cache_dict = ask_for_json()
+        # Combine the uploaded JSON with the GitHub JSON
+        if o2cm_results_cache_dict is not None:
+            o2cm_results_cache_dict.update(o2cm_github_dict)
+        elif not os.path.exists("o2cm_results_cache.json"):
+            o2cm_results_cache_dict = o2cm_github_dict
+
+        with st.expander("Why?"):
+            st.write(
+                """The JSON contains a cache of the results from several thousand O2CM results pages.
+                    This is necessary to avoid hitting the O2CM servers too hard. Also, getting a result from the JSON
+                    is about 7x faster than getting it from the O2CM servers."""
+            )
+            st.write(
+                """When you run this, you will get a new JSON file to use next time. This new JSON
+                    will contain the results from the new results pages you hit if they are not already in the cache.
+                    Additionally, the more recent searches will be moved to the top of the JSON file, so they will not
+                    be deleted as quickly if the cache is full (currently set to 10k results, or about 5 MB)."""
+            )
+            st.markdown(
+                """By default, the JSON file from
+                        [here](https://github.com/Niloc1624/YCN-Calculator/blob/master/o2cm_results_cache.json)
+                        is used. If you upload a JSON file, the program will combine it with the default one
+                        above and use the combined JSON file."""
+            )
 
     st.write("## Enter a first and last name (or lists of each)")
     st.write(
@@ -218,10 +238,20 @@ def main():
         )
 
     if st.button("Process Name(s)"):
+        # Pull the results from firebase only after someone is searched for
+        if results_location == "firebase":
+            with st.spinner("Fetching results from Firebase..."):
+                o2cm_results_cache_dict = pull_dicts_from_firebase()
+
         output_tables, new_o2cm_results_cache_dict, results_nums_dict = process_names(
             first_names, last_names, simple, o2cm_results_cache_dict
         )
-        display_results(output_tables, new_o2cm_results_cache_dict, results_nums_dict)
+        display_results(
+            output_tables,
+            new_o2cm_results_cache_dict,
+            results_nums_dict,
+            results_location,
+        )
 
     return
 
