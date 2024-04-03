@@ -55,7 +55,7 @@ def main():
                 entries_closed_comps.append(comp_code)
 
         with st.form("Competition Checker"):
-            chosen_comp_code = st.radio(
+            automatic_comp_code = st.radio(
                 "Select a competition to check",
                 entries_open_comps,
                 format_func=lambda option: available_comps_dict[option][
@@ -70,8 +70,20 @@ def main():
                 for closed_entry in entries_closed_comps:
                     st.write(available_comps_dict[closed_entry]["total_comp_string"])
 
+            # Ask the user if they want to enter their own comp code
+            manual_comp_code = st.text_input(
+                "Or enter your own 3-letter comp code",
+            )
+            if manual_comp_code:
+                chosen_comp_code = manual_comp_code
+            else:
+                chosen_comp_code = automatic_comp_code
+
             if st.form_submit_button("Check Entries"):
                 form_submitted = True
+
+    if len(chosen_comp_code) != 3:
+        st.warning("Your comp code is not 3 letters long. Are you sure it is correct?")
 
     if form_submitted:
         call_comp_checker(chosen_comp_code)
