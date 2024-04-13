@@ -275,10 +275,14 @@ def get_info_from_o2cm_results(html):
     headers = soup.select(".h3")
     headers_text = [header.text.lower() for header in headers]
 
+    # Get competition_name
+    competition_name = soup.select_one(".h1").text.strip()
+
     return {
         "num_rounds": num_rounds,
         "dancer_names": dancer_names,
         "headers_text": headers_text,
+        "competition_name": competition_name,
     }
 
 

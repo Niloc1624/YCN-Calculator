@@ -1,4 +1,3 @@
-from bs4 import BeautifulSoup
 from eventClass import Event
 from utils import which_ele_is_in_str, get_result_from_link, streamlit_or_print
 
@@ -14,6 +13,7 @@ class Result(Event):
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
     self.date           : date of the event stored with date object
+    self.competition_name: name of the competition with the date from results.o2cm.com/individual
     self.num_rounds     : number of rounds in the event
     self.is_new_result  : True if the result is new, False if it was cached
 
@@ -33,6 +33,7 @@ class Result(Event):
         first_name,
         last_name,
         date,
+        competition_name,
         o2cm_results_cache_dict,
         debug_reject_headers=0,
         streamlit_mode=False,
@@ -52,6 +53,7 @@ class Result(Event):
         self.last_name = last_name
         self.dancer_name = first_name + " " + last_name
         self.date = date
+        self.competition_name = competition_name
         self.o2cm_results_cache_dict = o2cm_results_cache_dict
         self.debug_reject_headers = debug_reject_headers
         self.link = result.get("href")

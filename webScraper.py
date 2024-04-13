@@ -260,7 +260,7 @@ def webScraper(
         except FileNotFoundError:
             o2cm_results_cache_dict = {}
             with open(o2cm_results_cache_json, "w") as f:
-                json.dump(o2cm_results_cache_dict, f)
+                json.dump(o2cm_results_cache_dict, f, indent=2)
 
     top6_results_links = []
     # For loop here for people who have multiple O2CM accounts
@@ -268,7 +268,7 @@ def webScraper(
         text = f"Calculating points for {first_name} {last_name}."
         if streamlit and from_comp_checker:
             expander.write(text)
-        elif show_work:
+        elif not streamlit and show_work:
             print("\n", text, "\n")
 
         response = httpx_client().get(
@@ -308,6 +308,7 @@ def webScraper(
                         first_name,
                         last_name,
                         date_object,
+                        competition_name,
                         o2cm_results_cache_dict,
                         debug_reject_headers,
                         streamlit_mode=streamlit,
@@ -320,8 +321,10 @@ def webScraper(
                 match = re.search(date_pattern, elem_text)
                 if match:
                     date_str = match.group()
+                    competition_name = elem_text
 
     # Check rounds
+    current_competition_name = None
     num_total_results = len(top6_results_links)
     for result in top6_results_links:
 
@@ -348,8 +351,16 @@ def webScraper(
                         eval(result.style + "_data")[level][dance][i] += num_points
                         points_added = True
             if points_added and not from_comp_checker:
+                if current_competition_name != result.competition_name:
+                    current_competition_name = result.competition_name
+                    streamlit_or_print(
+                        f"#### {current_competition_name}",
+                        streamlit,
+                        expander,
+                    )
+
                 streamlit_or_print(
-                    f"{result} {result.num_rounds} rounds. Adding {num_points} point(s).",
+                    f"[{result} {result.num_rounds} rounds. Adding {num_points} point(s).]({result.link})",
                     streamlit,
                     expander,
                 )
@@ -449,7 +460,7 @@ def webScraper(
 
     percent_new_results = get_percent(num_new_results, num_total_results)
     output.append(
-        f"{num_new_results}/{num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON."
+        f"{num_new_results:,d}/{num_total_results:,d} results ({percent_new_results}%) were new and therefore added to the JSON."
     )
 
     # The goods (data)
