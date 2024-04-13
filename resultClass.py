@@ -1,5 +1,5 @@
 from eventClass import Event
-from utils import which_ele_is_in_str, get_result_from_link, streamlit_or_print
+from utils import which_ele_is_in_str, get_result_from_link, streamlit_or_print, get_comp_code_from_url
 
 
 class Result(Event):
@@ -9,11 +9,13 @@ class Result(Event):
     self.first_name     : dancer's first name for this result
     self.last_name      : dancer's last name for this result
     self.dancer_name    : dancer's name for this result in form "first_name last_name"
+    self.date           : date of the event stored with date object
+    self.competition_name: name of the competition with the date from results.o2cm.com/individual
+    self.o2cm_results_cache_dict: dictionary of results from the cache
     self.link           : link from the individual results.o2cm.com page for that event
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
-    self.date           : date of the event stored with date object
-    self.competition_name: name of the competition with the date from results.o2cm.com/individual
+    self.comp_code       : 3-letter competition code for the event
     self.num_rounds     : number of rounds in the event
     self.is_new_result  : True if the result is new, False if it was cached
 
@@ -64,6 +66,7 @@ class Result(Event):
         super().__init__(result, debug_reject_headers, streamlit_mode, expander)
         self.placement = int(self.raw_text.split(")")[0])
         self.dances_string = ", ".join(self.dances)
+        self.comp_code = get_comp_code_from_url(self.link)
 
     def __repr__(self):
         """

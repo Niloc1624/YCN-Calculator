@@ -23,6 +23,10 @@ def webScraper(
     expander=None,
     from_comp_checker=False,
     o2cm_results_cache_dict=None,
+    comp_codes_to_exclude=[
+        "bbj",
+        "hbi",
+    ],  # Exclude comps judged by amateurs (bbj is Bam Jam, hbi is Harvard Beginners)
 ):
     """
     Scrapes https://results.o2cm.com/ given someone's name.
@@ -327,6 +331,9 @@ def webScraper(
     current_competition_name = None
     num_total_results = len(top6_results_links)
     for result in top6_results_links:
+
+        if result.comp_code in comp_codes_to_exclude:
+            continue
 
         if result.is_new_result:
             num_new_results += 1
