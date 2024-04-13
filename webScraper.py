@@ -359,8 +359,12 @@ def webScraper(
                         expander,
                     )
 
+                if num_points == 1:
+                    point_text = "point"
+                else:
+                    point_text = "points"
                 streamlit_or_print(
-                    f"[{result} {result.num_rounds} rounds. Adding {num_points} point(s).]({result.link})",
+                    f"{num_points} {point_text} - [{result}]({result.link}) {result.num_rounds} rounds.",
                     streamlit,
                     expander,
                 )

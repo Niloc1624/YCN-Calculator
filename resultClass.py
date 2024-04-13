@@ -25,6 +25,8 @@ class Result(Event):
     self.debug_reject_headers: 1 to print out things we don't know what to do with
     self.streamlit_mode : 1 to print to streamlit, 0 to print to console
     self.expander       : Expander object for Streamlit. Default is None
+    self.valid          : 1 if the event is valid, 0 if it is not
+    self.invalid_text   : reasoning for invalidity
     """
 
     def __init__(
@@ -67,7 +69,10 @@ class Result(Event):
         """
         When the Result object is printed, this is what is returned
         """
-        return f"#{self.placement} in {self.level.title()} {self.style.title()} {self.dances_string.title().strip()}."
+        if self.valid:
+            return f"#{self.placement} in {self.level.title()} {self.style.title()} {self.dances_string.title().strip()}."
+        else:
+            return f"{self.invalid_text}"
 
     def _getDances(self):
         """

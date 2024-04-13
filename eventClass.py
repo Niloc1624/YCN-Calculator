@@ -12,6 +12,8 @@ class Event:
     self.style          : what style the event was
     self.dances         : list of dances in the result
     self.dances_string  : capital letters for each dance (example: WTFQ)
+    self.valid          : 1 if the event is valid, 0 if it is not
+    self.invalid_text   : reasoning for invalidity
     """
 
     def __init__(
@@ -33,6 +35,7 @@ class Event:
         self.style = self._getStyle()
         self.dances = self._getDances()
         self.dances_string = ""
+        self.valid = 1
         for dance in self.dances:
             if dance != "":
                 self.dances_string += dance[0].upper()
@@ -77,9 +80,11 @@ class Event:
         for lst in levels_list:
             if which_ele_is_in_str(lst, result_text):
                 return lst[0]
+        self.valid = 0
+        self.invalid_text = f"{result_text}: has no valid level."
         if self.debug_reject_headers:
             streamlit_or_print(
-                f"{result_text}: has no valid level.",
+                f"{self.invalid_text}",
                 self.streamlit_mode,
                 self.expander,
             )
@@ -126,12 +131,15 @@ class Event:
             ballroom_dance_list, international_list, result_text
         ):
             return "standard"
-        elif self.debug_reject_headers:
-            streamlit_or_print(
-                f"{result_text}: has no valid style.",
-                self.streamlit_mode,
-                self.expander,
-            )
+        else:
+            self.valid = 0
+            self.invalid_text = f"{result_text}: has no valid style."
+            if self.debug_reject_headers:
+                streamlit_or_print(
+                    f"{self.invalid_text}",
+                    self.streamlit_mode,
+                    self.expander,
+                )
 
         return None
 
@@ -174,12 +182,17 @@ class Event:
                     dances.append("swing")
             elif dance_letter in dances_dictionary:
                 dances.append(dances_dictionary[dance_letter])
-            elif self.debug_reject_headers:
-                streamlit_or_print(
-                    f"{dance_letter}: not a valid dance letter in {event_dance_letters}.",
-                    self.streamlit_mode,
-                    self.expander,
+            else:
+                self.valid = 0
+                self.invalid_text = (
+                    f"{result_text}: not a valid dance letter in {event_dance_letters}."
                 )
+                if self.debug_reject_headers:
+                    streamlit_or_print(
+                        f"{self.invalid_text}",
+                        self.streamlit_mode,
+                        self.expander,
+                    )
 
         if dances:
             return dances

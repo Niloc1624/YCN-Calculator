@@ -75,7 +75,7 @@ def comp_checker(
     )
 
     num_dancers = len(competitor_name_elements)
-    text = f"{num_dancers} dancer(s) to check for {comp_entries_website}"
+    text = f"{num_dancers:,d} dancer(s) to check for {comp_entries_website}"
     expander = None
     if streamlit:
         expander = st.status(text, expanded=True)
@@ -137,7 +137,7 @@ def comp_checker(
             seconds_per_dancer = round(time_in_seconds / dancers_completed, 1)
 
             streamlit_or_print(
-                f"Completed {dancers_completed}/{num_dancers} dancers in {time_in_minutes} minutes. "
+                f"Completed {dancers_completed:,d}/{num_dancers:,d} dancers in {time_in_minutes} minutes. "
                 + f"Estimated {est_min_remaining} minutes remaining. "
                 + f"Averaging {seconds_per_dancer} seconds/dancer.",
                 streamlit,
@@ -206,8 +206,8 @@ def comp_checker(
 
     if show_work:
         streamlit_or_print(
-            f"\n{num_dancers_with_events}/{num_dancers} dancers have events."
-            + f"\n{num_found}/{num_dancers_with_events} are registered for an event they have placed out of.\n",
+            f"\n{num_dancers_with_events:,d}/{num_dancers:,d} dancers have events."
+            + f"\n{num_found:,d}/{num_dancers_with_events:,d} are registered for an event they have placed out of.\n",
             streamlit,
         )
 
@@ -216,14 +216,14 @@ def comp_checker(
     time_in_minutes = round(time_in_seconds / 60, 1)
     seconds_per_dancer = round(time_in_seconds / num_dancers, 1)
     streamlit_or_print(
-        f"This took {time_in_minutes} minutes to run for {num_dancers} dancers. "
+        f"This took {time_in_minutes:,d} minutes to run for {num_dancers:,d} dancers. "
         + f"That is an average {seconds_per_dancer} seconds/dancer.\n",
         streamlit,
     )
 
     percent_new_results = get_percent(total_num_new_results, total_num_total_results)
     streamlit_or_print(
-        f"{total_num_new_results}/{total_num_total_results} results ({percent_new_results}%) were new and therefore added to the JSON.\n",
+        f"{total_num_new_results:,d}/{total_num_total_results:,d} results ({percent_new_results}%) were new and therefore added to the JSON.\n",
         streamlit,
     )
     if streamlit:
