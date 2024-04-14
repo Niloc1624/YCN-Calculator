@@ -216,7 +216,7 @@ def comp_checker(
     time_in_minutes = round(time_in_seconds / 60, 1)
     seconds_per_dancer = round(time_in_seconds / num_dancers, 1)
     streamlit_or_print(
-        f"This took {time_in_minutes:,d} minutes to run for {num_dancers:,d} dancers. "
+        f"This took {time_in_minutes} minutes to run for {num_dancers:,d} dancers. "
         + f"That is an average {seconds_per_dancer} seconds/dancer.\n",
         streamlit,
     )

@@ -34,6 +34,11 @@ def main():
 
     streamlit_page_header("Competition Checker")
 
+    st.warning("""WARNING: Streamlit does not allow apps to run on a page for more than 30 minutes.
+               If you see that your competition will take more than 30 minutes to run, please reach
+               out to Colin to run it locally, or you can download
+               [the repo from GitHub](https://github.com/Niloc1624/YCN-Calculator) and run it yourself.""")
+
     form_submitted = False
 
     with st.spinner("Fetching Competitions from O2CM..."):
