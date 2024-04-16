@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import json
 from utils import httpx_client, get_percent, streamlit_page_header
-#from firebase_funcs import pull_dicts_from_firebase, upload_dict_to_firebase
+from firebase_funcs import pull_dicts_from_firebase, upload_dict_to_firebase
 
 
 def process_result(values_dict, simple=False):
@@ -171,6 +171,10 @@ def main():
 
     streamlit_page_header("YCN Point Calculator")
 
+    
+    ####TODO: Figure out how to get it to run with results_location="github" if I get an error from Firebase
+    
+    
     if results_location == "github":
 
         st.write(
