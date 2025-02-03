@@ -2,6 +2,7 @@ import httpx
 from bs4 import BeautifulSoup
 import streamlit as st
 import json
+#from firebase_funcs import firebase_auth
 
 
 def which_ele_is_in_str(list, string):
@@ -228,8 +229,17 @@ def get_result_from_link(
     """
     is_new_result = False
     if link not in o2cm_results_cache_dict:
-        response_text = httpx_client().get(link).text
-        o2cm_result_info_dict = get_info_from_o2cm_results(response_text)
+
+        # TODO: fix the link issue. Firebase keys can't have '/' in them. Use base64 encoding? And also add link to the doc probably
+        """db, _ = firebase_auth()
+        doc = db.collection("results").document(link)
+        if doc.exists:
+            o2cm_result_info_dict = doc.get().to_dict()
+        else:"""
+        if True:
+            response_text = httpx_client().get(link).text
+            o2cm_result_info_dict = get_info_from_o2cm_results(response_text)
+
         o2cm_results_cache_dict[link] = o2cm_result_info_dict
         is_new_result = True
     else:
@@ -260,6 +270,16 @@ def get_info_from_o2cm_results(html):
             - headers_text (list): A list of header texts.
     """
     soup = BeautifulSoup(html, "html.parser")
+
+    soup_h2 = soup.find("h2")
+    if soup_h2:
+        if soup_h2.text == "500 - Internal server error.":
+            return {
+                "num_rounds": 0,
+                "dancer_names": [],
+                "headers_text": [],
+                "competition_name": "",
+            }
 
     # Get num_rounds
     select_element = soup.select_one("select")

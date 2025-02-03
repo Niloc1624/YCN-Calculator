@@ -9,3 +9,6 @@
 /Credentials/credentials.json
 /Credentials/ycn-calculator-database-*
 /Old
+secrets.toml
+firestore-key.json
+/split_jsons

@@ -11,7 +11,7 @@ from utils import (
 import streamlit as st
 
 if __name__ == "__main__":
-    comp_code = "mit"
+    comp_code = "ndc"
     first_name = ""
     last_name = ""
     format_for_spreadsheet = True
@@ -205,8 +205,9 @@ def comp_checker(
         num_dancers_with_events += dancer_has_events
 
     if show_work:
+        percent_dancers_with_events = get_percent(num_dancers_with_events, num_dancers)
         streamlit_or_print(
-            f"\n{num_dancers_with_events:,d}/{num_dancers:,d} dancers have events."
+            f"\n{num_dancers_with_events:,d}/{num_dancers:,d} dancers ({percent_dancers_with_events}%) have events."
             + f"\n{num_found:,d}/{num_dancers_with_events:,d} are registered for an event they have placed out of.\n",
             streamlit,
         )

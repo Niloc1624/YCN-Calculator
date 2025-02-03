@@ -1,5 +1,10 @@
 from eventClass import Event
-from utils import which_ele_is_in_str, get_result_from_link, streamlit_or_print, get_comp_code_from_url
+from utils import (
+    which_ele_is_in_str,
+    get_result_from_link,
+    streamlit_or_print,
+    get_comp_code_from_url,
+)
 
 
 class Result(Event):
@@ -16,6 +21,7 @@ class Result(Event):
     self.placement      : what place the person got in the event
     self.dances_string  : (overrides Event) ,-delimited list of dances
     self.comp_code       : 3-letter competition code for the event
+    ## self.comp_code_with_year: 3-letter competition code for the event with the 2-digit year ## Needs to be fixed
     self.num_rounds     : number of rounds in the event
     self.is_new_result  : True if the result is new, False if it was cached
 
@@ -67,6 +73,7 @@ class Result(Event):
         self.placement = int(self.raw_text.split(")")[0])
         self.dances_string = ", ".join(self.dances)
         self.comp_code = get_comp_code_from_url(self.link)
+        # self.comp_code_with_year = get_comp_code_from_url(self.link, include_year=True) # Needs to be fixed
 
     def __repr__(self):
         """
@@ -105,10 +112,18 @@ class Result(Event):
         o2cm_result_info_dict, self.o2cm_results_cache_dict, is_new_result = (
             get_result_from_link(self.link, self.o2cm_results_cache_dict)
         )
-
-        # Add the number of rounds to the Result object, add whether the result was new or not
-        self.num_rounds = o2cm_result_info_dict["num_rounds"]
+        # Add whether the result was new or not and the number of rounds
         self.is_new_result = is_new_result
+        self.num_rounds = o2cm_result_info_dict["num_rounds"]
+
+        # If the result page doesn't exist, quit early
+        if o2cm_result_info_dict["dancer_names"] == []:
+            streamlit_or_print(
+                f"{result_text}: 0 dancers found (likey due to 500 error)",
+                self.streamlit_mode,
+                self.expander,
+            )
+            return [""]
 
         # Make sure dancer actually made the final (may not be the case if <6 couples in final)
         if self.dancer_name.casefold() not in [
